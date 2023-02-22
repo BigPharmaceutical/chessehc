@@ -1,0 +1,24 @@
+[package]
+name = "chessehc_server"
+version = "0.1.0"
+edition = "2021"
+authors = [ "tomBoddaert", "BigPharmaceutical" ]
+homepage = "https://github.com/BigPharmaceutical/chessehc/"
+repository = "https://github.com/BigPharmaceutical/chessehc/"
+
+[dependencies]
+
+[lib]
+name = "chessehc"
+path = "lib/lib.rs"
+doc = true
+edition = "2021"
+crate-type = [ "lib" ]
+
+[features]
+server = []
+
+[[bin]]
+name = "chessehc_server"
+path = "src/main.rs"
+required-features = [ "server" ]
