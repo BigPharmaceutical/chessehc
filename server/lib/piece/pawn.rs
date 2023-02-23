@@ -1,8 +1,8 @@
-use crate::{board::{Board, Coordinate, RawBoard}, logic::Move};
+use crate::{board::Board, logic::Move};
 
 use super::Piece;
 
-pub struct Pawn(u16, u8);
+pub struct Pawn(u16, Option<u16>);
 
 impl Piece for Pawn {
     fn capture_points(&self) -> u8 {
@@ -10,22 +10,20 @@ impl Piece for Pawn {
     }
 
     fn moves(&self) -> u16 {
+        self.0
+    }
+
+    fn pawn_first_move(&self) -> Option<u16> {
+        self.1
+    }
+
+    fn is_valid_move(&self, target: &Option<Box<dyn Piece>>, board: &Board, r#move: &Move) -> bool {
         todo!()
     }
 
-    fn pawn_first_move(&self) -> Option<u8> {
-        todo!()
-    }
+    fn mid_move(&mut self, board: &mut Board, r#move: &Move) -> Option<Box<dyn Piece>> {
+        self.0 += 1;
 
-    fn is_valid_move(&self, target: Option<&dyn Piece>, board: &Board, from: Coordinate, to: Coordinate) -> bool {
-        todo!()
-    }
-
-    fn mid_move(
-            &mut self,
-            board: RawBoard,
-            r#move: &Move
-        ) -> Option<Box<dyn Piece>> {
         todo!()
     }
 }
