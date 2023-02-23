@@ -20,7 +20,12 @@ pub trait Piece {
     }
 
     /// Validates a move: 'from' -> 'to'
-    fn is_valid_move(&self, target: &Option<Box<dyn Piece>>, board: &Board, r#move: &Move) -> bool;
+    fn is_valid_move(
+        &self,
+        target: &Option<(u8, Box<dyn Piece>)>,
+        board: &Board,
+        r#move: &Move,
+    ) -> bool;
     #[allow(unused)]
     /// Run while the piece is being moved: 'from' -> 'to'
     fn mid_move(&mut self, board: &mut Board, r#move: &Move) -> Option<Box<dyn Piece>> {

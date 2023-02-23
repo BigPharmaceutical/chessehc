@@ -3,16 +3,18 @@ use std::{
     fmt::{self, Display},
 };
 
-use crate::{logic::Move, piece::Piece};
-
-pub type Coordinate = (usize, usize);
+use crate::{
+    logic::{Coordinate, Move},
+    piece::Piece,
+};
 
 pub struct Board {
     players: u8,
     width: usize,
     height: usize,
-    board: Vec<Vec<Option<Box<dyn Piece>>>>,
+    board: Vec<Vec<Option<(u8, Box<dyn Piece>)>>>,
     turn: u16,
+    kings: Vec<Coordinate>,
 }
 
 impl Board {
@@ -27,6 +29,7 @@ impl Board {
                 .take(height)
                 .collect(),
             turn: 0,
+            kings: Vec::new(),
         }
     }
 
@@ -34,6 +37,18 @@ impl Board {
     /// Get the number of players
     pub const fn players(&self) -> u8 {
         self.players
+    }
+
+    #[must_use]
+    /// Get the width
+    pub const fn width(&self) -> usize {
+        self.width
+    }
+
+    #[must_use]
+    /// Get the height
+    pub const fn height(&self) -> usize {
+        self.height
     }
 
     #[must_use]
@@ -46,9 +61,9 @@ impl Board {
     pub fn get_position(
         &self,
         coordinate: Coordinate,
-    ) -> Result<&Option<Box<dyn Piece>>, MoveError> {
+    ) -> Result<&Option<(u8, Box<dyn Piece>)>, MoveError> {
         let Some(Some(piece)) = self.board.get(coordinate.1).map(|row| row.get(coordinate.0)) else {
-            return Err(MoveError::CoordinateOffBoard(coordinate, (self.width, self.height)));
+            return Err(MoveError::CoordinateOffBoard(coordinate, self.width, self.height));
         };
 
         Ok(piece)
@@ -58,9 +73,9 @@ impl Board {
     pub fn get_position_mut(
         &mut self,
         coordinate: Coordinate,
-    ) -> Result<&mut Option<Box<dyn Piece>>, MoveError> {
+    ) -> Result<&mut Option<(u8, Box<dyn Piece>)>, MoveError> {
         let Some(Some(piece)) = self.board.get_mut(coordinate.1).map(|row| row.get_mut(coordinate.0)) else {
-            return Err(MoveError::CoordinateOffBoard(coordinate, (self.width, self.height)));
+            return Err(MoveError::CoordinateOffBoard(coordinate, self.width, self.height));
         };
 
         Ok(piece)
@@ -75,18 +90,25 @@ impl Board {
             return Err(MoveError::NoPiece(r#move.from));
         };
 
+        // Check that the player owns the piece
+        if piece.0 != r#move.player {
+            return Ok(false);
+        }
+
+        let to = r#move.from.add(&r#move.delta, self);
+
         // Get the target entry, to save doing it in the piece's logic
-        let target = self.get_position(r#move.to)?;
+        let target = self.get_position(to)?;
 
         // If there is a piece at the target and it is not takeable, return false
         if let Some(target) = target {
-            if !target.takeable() {
+            if !target.1.takeable() || target.0 == piece.0 {
                 return Ok(false);
             }
         }
 
         // Get the piece to validate the move
-        Ok(piece.is_valid_move(target, self, r#move))
+        Ok(piece.1.is_valid_move(target, self, r#move))
     }
 
     /// Perform a move on the board
@@ -96,8 +118,10 @@ impl Board {
             return Err(MoveError::InvalidMove(*r#move));
         }
 
+        let to = r#move.from.add(&r#move.delta, self);
+
         // Remove the target from the board
-        let target = self.get_position_mut(r#move.to)?;
+        let target = self.get_position_mut(to)?;
         let taken_piece = target.take();
 
         // Remove the piece from the board
@@ -105,19 +129,19 @@ impl Board {
 
         // Run the piece's mid_move logic
         if let Some(mut piece) = piece {
-            piece.mid_move(self, r#move);
+            piece.1.mid_move(self, r#move);
         }
 
         self.turn += 1;
 
         // Return the points gained
-        Ok(taken_piece.map_or(0, |taken_piece| taken_piece.capture_points()))
+        Ok(taken_piece.map_or(0, |taken_piece| taken_piece.1.capture_points()))
     }
 }
 
 #[derive(Debug)]
 pub enum MoveError {
-    CoordinateOffBoard(Coordinate, Coordinate),
+    CoordinateOffBoard(Coordinate, usize, usize),
     NoPiece(Coordinate),
     InvalidMove(Move),
 }
@@ -126,9 +150,9 @@ impl Display for MoveError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use MoveError::{CoordinateOffBoard, InvalidMove, NoPiece};
         match *self {
-            CoordinateOffBoard(coordinate, size) => writeln!(
+            CoordinateOffBoard(coordinate, width, height) => writeln!(
                 f,
-                "coordinate {coordinate:?} off the board of dimensions {size:?}"
+                "coordinate {coordinate:?} off the board of dimensions ({width}, {height})"
             ),
             NoPiece(coordinate) => writeln!(f, "no piece at {coordinate:?}"),
             InvalidMove(r#move) => writeln!(f, "move is not valid: {move:?}"),
