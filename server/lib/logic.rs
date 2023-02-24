@@ -1,19 +1,26 @@
-use std::{ops::Add, os::windows};
+use std::fmt::Display;
 
 use crate::board::Board;
 
 #[derive(Clone, Copy, Debug)]
-pub struct Coordinate(pub usize, pub usize);
+pub struct Coordinate(pub i16, pub i16);
 
 #[derive(Clone, Copy, Debug)]
 pub struct CoordinateDelta(pub i8, pub i8);
 
 impl Coordinate {
+    #[must_use]
     pub fn add(&self, rhs: &CoordinateDelta, board: &Board) -> Self {
         Self(
-            (self.0 as isize + rhs.0 as isize).rem_euclid(board.width() as isize) as usize,
-            (self.1 as isize + rhs.1 as isize).rem_euclid(board.height() as isize) as usize,
+            (self.0 + i16::from(rhs.0)).rem_euclid(board.width()),
+            (self.1 + i16::from(rhs.1)).rem_euclid(board.height()),
         )
+    }
+}
+
+impl Display for Coordinate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.0, self.1)
     }
 }
 
