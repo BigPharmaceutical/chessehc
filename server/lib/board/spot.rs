@@ -1,5 +1,7 @@
 use std::{error, fmt::Display};
 
+use crate::piece::Piece;
+
 use super::Board;
 
 #[derive(Clone, Default)]
@@ -13,8 +15,20 @@ impl Spot {
         self.piece.is_some()
     }
 
-    pub const fn get(&self) -> Option<usize> {
-        self.piece
+    pub fn get<'a>(&'a self, board: &'a Board) -> Option<&'a (u8, Box<dyn Piece>)> {
+        Some(
+            board
+                .get_piece(self.piece?)
+                .expect("could not get piece from spot"),
+        )
+    }
+
+    pub fn get_mut<'a>(&'a self, board: &'a mut Board) -> Option<&'a mut (u8, Box<dyn Piece>)> {
+        Some(
+            board
+                .get_piece_mut(self.piece?)
+                .expect("could not get piece from spot"),
+        )
     }
 
     pub fn attacking(&self, player: u8, board: &Board) -> usize {
@@ -38,12 +52,12 @@ impl Spot {
         self.piece.take()
     }
 
-    pub fn place(&mut self, piece: usize) -> Result<(), Error> {
+    pub fn place(&mut self, piece_id: usize) -> Result<(), Error> {
         if self.piece.is_some() {
             return Err(Error::SpotOccupied);
         }
 
-        self.piece = Some(piece);
+        self.piece = Some(piece_id);
         Ok(())
     }
 
@@ -61,7 +75,7 @@ impl Spot {
         self.attackers.push(piece);
     }
 
-    pub fn unattack(&mut self, piece: usize) {
+    pub fn unattack(&mut self, piece_id: usize) {
         // if let Ok(i) = self.attacking.binary_search(&piece) {
         //     self.attacking.remove(i);
         // }
@@ -69,7 +83,7 @@ impl Spot {
         if let Some(i) = self
             .attackers
             .iter()
-            .position(|&attacker| attacker == piece)
+            .position(|&attacker| attacker == piece_id)
         {
             self.attackers.remove(i);
         }
