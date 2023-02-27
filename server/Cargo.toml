@@ -1,10 +1,13 @@
 [package]
 name = "chessehc_server"
-version = "0.1.3"
+version = "0.1.4"
+authors = ["Tom Boddaert (tomBoddaert) <chessehc@tomboddaert.com>", "BigPharmaceutical"]
 edition = "2021"
-authors = [ "tomBoddaert", "BigPharmaceutical" ]
+description = "A variation of Chess on the surface of a tube; server and library"
+readme = "../README.md"
 homepage = "https://github.com/BigPharmaceutical/chessehc/"
 repository = "https://github.com/BigPharmaceutical/chessehc/"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 
@@ -21,4 +24,4 @@ server = []
 [[bin]]
 name = "chessehc_server"
 path = "src/main.rs"
-required-features = [ "server" ]
+# required-features = [ "server" ]

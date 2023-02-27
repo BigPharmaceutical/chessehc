@@ -15,9 +15,6 @@ where
     }
     /// The number of points gained capturing this piece
     fn capture_points(&self) -> u8;
-    /// Whether this piece's attacks can be blocked
-    /// (determines whether the attacks need to be recalculated when blocking)
-    fn blockable(&self) -> bool;
     /// Whether this piece can be castled by a king (for Castling)
     fn castleable(&self) -> bool {
         false
@@ -27,11 +24,12 @@ where
     fn moves(&self) -> u16;
     /// The move number where the pawn took its first move of two places and its direction,
     /// if it is a pawn and those conditions apply (for En Passant)
-    fn pawn_first_move(&self) -> Option<(u16, i8)> {
+    fn pawn_first_move(&self) -> Option<(u16, Coordinate)> {
         None
     }
-    /// Add the piece's attacks to the board
-    fn add_attacks(&mut self, board: &mut Board, piece_id: usize, from: Coordinate);
+
+    /// Checks if the piece is attacking a coordinate
+    fn is_attacking(&self, board: &Board, from: &Coordinate, to: &Coordinate) -> bool;
 
     /// Validates a move: 'from' -> 'to'
     fn is_valid_move(
@@ -48,10 +46,35 @@ where
         board: &mut Board,
         r#move: &Move,
         to: &Coordinate,
-    ) -> Option<Box<dyn Piece>> {
-        None
+    ) -> (u8, Option<Box<dyn Piece>>) {
+        (0, None)
     }
 }
 
+#[derive(Debug)]
+pub struct Dummy;
+impl Piece for Dummy {
+    fn capture_points(&self) -> u8 {
+        0
+    }
+    fn moves(&self) -> u16 {
+        0
+    }
+    fn is_attacking(&self, _board: &Board, _from: &Coordinate, _to: &Coordinate) -> bool {
+        false
+    }
+    fn is_valid_move(
+        &self,
+        _target: Option<&(u8, Box<dyn Piece>)>,
+        _board: &Board,
+        _move: &Move,
+        _to: &Coordinate,
+    ) -> bool {
+        false
+    }
+}
+
+mod bishop;
 mod pawn;
+pub use bishop::*;
 pub use pawn::*;
