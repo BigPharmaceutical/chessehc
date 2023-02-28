@@ -12,8 +12,8 @@ pub struct Pawn(u16, Option<(u16, Coordinate)>, i8);
 
 impl Pawn {
     #[must_use]
-    pub const fn new(rank: i8) -> Self {
-        Self(0, None, rank)
+    pub const fn new(direction: i8) -> Self {
+        Self(0, None, direction)
     }
 }
 
@@ -182,5 +182,200 @@ impl Piece for Pawn {
         }
 
         (0, None)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        board::Board,
+        logic::{Coordinate, CoordinateDelta, Move},
+    };
+
+    use super::Pawn;
+
+    #[test]
+    fn attacking() {
+        let pawn_position = Coordinate(2, 1);
+
+        let mut board = Board::new(1, 5, 4).expect("failed to create board");
+        let pawn_id = board
+            .add_piece(0, Box::new(Pawn::new(1)), pawn_position)
+            .expect("failed to add pawn");
+        let pawn = board.get_piece(pawn_id).expect("failed to get pawn");
+
+        let tests = [
+            [false; 5],
+            [false; 5],
+            [false, true, false, true, false],
+            [false; 5],
+        ];
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let result = pawn.1.is_attacking(
+                    &board,
+                    &pawn_position,
+                    &Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap()),
+                );
+                assert!(
+                    result == expected,
+                    "test failed: {pawn_position} -x ({x}, {y}), {result} ({expected})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn moving() {
+        let pawn_position = Coordinate(2, 1);
+
+        let mut board = Board::new(1, 5, 4).expect("failed to create board");
+        board
+            .add_piece(0, Box::new(Pawn::new(1)), pawn_position)
+            .expect("failed to add pawn");
+
+        let tests = [
+            [false; 5],
+            [false; 5],
+            [false, false, true, false, false],
+            [false, false, true, false, false],
+        ];
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let result = board
+                    .is_valid_move(Move {
+                        player: 0,
+                        from: pawn_position,
+                        delta: CoordinateDelta(
+                            i8::try_from(x).unwrap() - i8::try_from(pawn_position.0).unwrap(),
+                            i8::try_from(y).unwrap() - i8::try_from(pawn_position.1).unwrap(),
+                        ),
+                        data: 0,
+                    })
+                    .expect("failed to validate move");
+                assert!(
+                    result == expected,
+                    "test failed: {pawn_position} -> ({x}, {y}), {result} ({expected})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    /// Test En Passant logic (heterodirectional)
+    fn en_passant_heterodirectional() {
+        let pawn_position_1 = Coordinate(1, 1);
+        let pawn_position_2 = Coordinate(2, 3);
+
+        let mut board = Board::new(2, 4, 5).expect("failed to create board");
+        board
+            .add_piece(0, Box::new(Pawn::new(1)), pawn_position_1)
+            .expect("failed to add pawn");
+        let pawn_id_2 = board
+            .add_piece(1, Box::new(Pawn::new(-1)), pawn_position_2)
+            .expect("failed to add pawn");
+
+        board
+            .make_move(Move {
+                player: 0,
+                from: pawn_position_1,
+                delta: CoordinateDelta(0, 2),
+                data: 0,
+            })
+            .expect("failed to make first move");
+
+        board
+            .make_move(Move {
+                player: 1,
+                from: pawn_position_2,
+                delta: CoordinateDelta(-1, -1),
+                data: 0,
+            })
+            .expect("failed to make second move");
+
+        let expected_board = [
+            [None; 4],
+            [None; 4],
+            [None, Some(pawn_id_2), None, None],
+            [None; 4],
+            [None; 4],
+        ];
+
+        for (y, rank) in expected_board.iter().enumerate() {
+            for (x, expected) in rank.iter().enumerate() {
+                let coordinate = Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap());
+                let spot = board.get_id(coordinate).expect("could not get coordinate");
+                let result = match (spot, expected) {
+                    (Some(a), Some(b)) if a == b => true,
+                    (None, None) => true,
+                    _ => false,
+                };
+
+                assert!(
+                    result,
+                    "piece test failed: {coordinate}: {spot:?} ({expected:?})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    /// Test En Passant logic (homodirectional)
+    fn en_passant_homodirectional() {
+        let pawn_position_1 = Coordinate(1, 1);
+        let pawn_position_2 = Coordinate(2, 1);
+
+        let mut board = Board::new(2, 4, 5).expect("failed to create board");
+        board
+            .add_piece(0, Box::new(Pawn::new(1)), pawn_position_1)
+            .expect("failed to add pawn");
+        let pawn_id_2 = board
+            .add_piece(1, Box::new(Pawn::new(1)), pawn_position_2)
+            .expect("failed to add pawn");
+
+        board
+            .make_move(Move {
+                player: 0,
+                from: pawn_position_1,
+                delta: CoordinateDelta(0, 2),
+                data: 0,
+            })
+            .expect("failed to make first move");
+
+        board
+            .make_move(Move {
+                player: 1,
+                from: pawn_position_2,
+                delta: CoordinateDelta(-1, 1),
+                data: 0,
+            })
+            .expect("failed to make second move");
+
+        let expected_board = [
+            [None; 4],
+            [None; 4],
+            [None, Some(pawn_id_2), None, None],
+            [None; 4],
+            [None; 4],
+        ];
+
+        for (y, rank) in expected_board.iter().enumerate() {
+            for (x, expected) in rank.iter().enumerate() {
+                let coordinate = Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap());
+                let spot = board.get_id(coordinate).expect("could not get coordinate");
+                let result = match (spot, expected) {
+                    (Some(a), Some(b)) if a == b => true,
+                    (None, None) => true,
+                    _ => false,
+                };
+
+                assert!(
+                    result,
+                    "piece test failed: {coordinate}: {spot:?} ({expected:?})"
+                );
+            }
+        }
     }
 }

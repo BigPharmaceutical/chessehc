@@ -46,9 +46,7 @@ where
         board: &mut Board,
         r#move: &Move,
         to: &Coordinate,
-    ) -> (u8, Option<Box<dyn Piece>>) {
-        (0, None)
-    }
+    ) -> (u8, Option<Box<dyn Piece>>);
 }
 
 #[derive(Debug)]
@@ -72,9 +70,23 @@ impl Piece for Dummy {
     ) -> bool {
         false
     }
+    fn mid_move(
+        &mut self,
+        _board: &mut Board,
+        _move: &Move,
+        _to: &Coordinate,
+    ) -> (u8, Option<Box<dyn Piece>>) {
+        (0, None)
+    }
 }
 
 mod bishop;
+mod knight;
 mod pawn;
+mod queen;
+mod rook;
 pub use bishop::*;
+pub use knight::*;
 pub use pawn::*;
+pub use queen::*;
+pub use rook::*;

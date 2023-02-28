@@ -1,7 +1,7 @@
 use chessehc::{
     self,
     logic::{Coordinate, CoordinateDelta, Move},
-    piece::{Bishop, Pawn},
+    piece::{Bishop, Pawn, Queen},
 };
 
 fn main() {
@@ -18,6 +18,29 @@ fn main() {
     board
         .add_piece(2, Box::new(Pawn::new(-1)), Coordinate(2, 3))
         .unwrap();
+    board
+        .add_piece(0, Box::new(Queen::new()), Coordinate(3, 0))
+        .unwrap();
+
+    for (test, expected) in &[
+        (Coordinate(3, 2), true),
+        (Coordinate(3, 0), true),
+        (Coordinate(1, 2), true),
+        (Coordinate(1, 0), true),
+        (Coordinate(3, 3), false),
+        (Coordinate(0, 0), false),
+        (Coordinate(1, 4), false),
+    ] {
+        let a = board
+            .get_piece(1)
+            .unwrap()
+            .1
+            .is_attacking(&board, &Coordinate(2, 1), test);
+        println!(
+            "test: {test} -> {a} ({expected}) {}",
+            if a == *expected { '✅' } else { '❌' }
+        );
+    }
 
     let move1 = Move {
         player: 0,

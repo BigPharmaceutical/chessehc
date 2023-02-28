@@ -18,4 +18,6 @@ If one player's pawn takes an initial move of 2, then another player moves a pie
 
 ## Licensing
 
-The [server directory](/server/) is licensed under either the [Apache License Version 2.0](/server/LICENSE_APACHE) OR [MIT](/server/LICENSE_MIT) license at your option.
+The [server directory](/server/) is dual-licensed under either the [Apache License Version 2.0](/server/LICENSE_APACHE) OR [MIT](/server/LICENSE_MIT) license at your option.
+
+The [client directory](/client/) is licensed under the [GNU GPL v3.0](/client/LICENSE_GPL) license, unless another license is specified.
