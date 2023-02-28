@@ -23,21 +23,16 @@ int initGraphics() {
 	fullRect->w = windowSurface->w;
 	fullRect->h = windowSurface->h;
 
-	//SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-	//if (!renderer) return 0;
-	
-	// Make fullscreen scale
-	SDL_DisplayMode displayMode;
-	SDL_GetCurrentDisplayMode(0, &displayMode);
-	//SDL_RenderSetLogicalSize(renderer, displayMode.w, displayMode.h);
-
-	fontLoad();
-
-	//SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, 8, 12);
+	initFont();
 
 
+	SDL_Rect temp;
+	temp.x = 10;
+	temp.y = 10;
+	temp.w = 32;
+	temp.h = 48;
+	drawString(drawSurface, "10110z1z", &temp);
 
-	drawChar(drawSurface, 49, 10, 10);
 	graphicsRender();	
 
 	return 1;
@@ -47,15 +42,14 @@ void graphicsRender() {
 	// Swap buffers and clear
 	SDL_BlitSurface(drawSurface, fullRect, windowSurface, fullRect); 
 	SDL_UpdateWindowSurface(window);
-
-	//SDL_RenderPresent(renderer);
-	//SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	//SDL_RenderClear(renderer);
+	SDL_FillRect(drawSurface, 0, 0);
 }
 
 void disposeGraphics() {
-	//SDL_DestroyRenderer(renderer);
 	free(fullRect);
+	SDL_FreeSurface(drawSurface);
+	disposeFont();
+
     SDL_DestroyWindow(window);
     SDL_Quit();
 }

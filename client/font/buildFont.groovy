@@ -23,7 +23,7 @@ def loadChar(String filename) {
 				case 49 -> 1
 				case 50 -> 2
 				case 51 -> 3
-			} << (2 * (index++ % 4))
+			} << (6 - 2 * (index++ % 4))
 			if (index % 4 == 0) {
 				result[resultIndex++] = acc
 				acc = 0

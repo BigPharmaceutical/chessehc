@@ -3,13 +3,12 @@
 
 #include <SDL2/SDL.h>
 
-void fontLoad();
+void initFont();
 
-void drawChar(SDL_Surface* destination, char character, int x, int y);
+void drawChar(SDL_Surface* destination, char character, SDL_Rect* target);
 
+void drawString(SDL_Surface* destination, char* string, SDL_Rect* target);
 
-
-
-
+void disposeFont();
 
 #endif

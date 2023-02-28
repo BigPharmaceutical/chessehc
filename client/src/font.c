@@ -1,50 +1,55 @@
 #include <stdio.h>
 #include "font.h"
 
-
+const char brightnessValues[] = {0, 85, 170, 255};
 SDL_Surface* charSurface;
 
-void fontLoad() {
+void initFont() {
+	// Prepare to read font
 	FILE* file = fopen("font.bin", "r");
-	unsigned char rawBuffer[24];
+	// This needs to be one bigger for a null char
+	unsigned char rawBuffer[25];
 	unsigned char textureBuffer[288];
 	charSurface = SDL_CreateRGBSurface(0, 8 * 128, 12, 24, 0xFF0000, 0x00FF00, 0x0000FF, 0);
+	
 	for (unsigned char charIndex = 0; charIndex < 128; charIndex++) {
+		// It appears that fread(...) dies if there isn't an extra \0 at the end for some systems.
+		rawBuffer[24] = '\0';
 		fread(rawBuffer, 24, 1, file);
-		int pixel = 0;
+
+		unsigned int pixel = 0;
 		for (int pixel = 0; pixel < 96; pixel++) {
-			char bufferValue = (rawBuffer[pixel / 4] >> (6 - 2 * (pixel % 4))) & 0b11;
-
-			unsigned char brightness = 0;
-			if (bufferValue == 1) {
-				brightness = 85;
-			} else if (bufferValue == 2) {
-				brightness = 170;
-			} else if (bufferValue == 3) {
-				brightness = 255;
-			}
-
-			long byteOffset = (8 * charIndex + pixel % 8 + (pixel / 8) * 128) * 3;
-			((char*) charSurface->pixels)[byteOffset] = brightness;
-			((char*) charSurface->pixels)[byteOffset + 1] = brightness;
-			((char*) charSurface->pixels)[byteOffset + 2] = brightness;
+			// Read brightness of pixel, mapped to [0,255] through lookup
+			unsigned char brightness = brightnessValues[(rawBuffer[pixel / 4] >> (6 - 2 * (pixel % 4))) & 0b11];
+			// Base offset in pixel array of this pixel
+			long byteOffset = 3 * (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
+			unsigned char* pixels = charSurface->pixels;
+			pixels[byteOffset] = brightness;
+			pixels[byteOffset + 1] = brightness;
+			pixels[byteOffset + 2] = brightness;
 		}
 	}
 }
 
-
-void drawChar(SDL_Surface* destination, char character, int x, int y) {
+void drawChar(SDL_Surface* destination, char character, SDL_Rect* target) {
 	SDL_Rect source;
 	source.x = character * 8;
 	source.y = 0;
-	source.w = 64*8;
+	source.w = 8;
 	source.h = 12;
-
-	SDL_Rect target;
-	target.x = x;
-	target.y = y;
-	target.w = 640;
-	target.h = 60;
-	SDL_BlitScaled(charSurface, &source, destination, &target);
+	SDL_BlitScaled(charSurface, &source, destination, target);
 }
 
+void drawString(SDL_Surface* destination, char* string, SDL_Rect* target) {
+	int originalX = target->x;
+	while (*string) {
+		drawChar(destination, *string, target);
+		string++;
+		target->x += target->w;
+	}
+	target->x = originalX;
+}
+
+void disposeFont() {
+	SDL_FreeSurface(charSurface);
+}
