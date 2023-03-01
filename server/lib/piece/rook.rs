@@ -37,9 +37,8 @@ impl Piece for Rook {
         if dy_a == 0 {
             // If it would have to move horizontally:
             for d in 1..dx.abs() {
-                let d = match i8::try_from(d * dx.signum()) {
-                    Ok(value) => value,
-                    Err(_) => continue,
+                let Ok(d) = i8::try_from(d * dx.signum()) else {
+                    continue;
                 };
 
                 let position = from.add(&CoordinateDelta(d, 0), board);
@@ -59,9 +58,8 @@ impl Piece for Rook {
             'up_down_loop: for dy in [dy_a, dy_b] {
                 // Check that no piece is between the origin and target
                 for d in 1..dy.abs() {
-                    let d = match i8::try_from(d * dy.signum()) {
-                        Ok(value) => value,
-                        Err(_) => continue,
+                    let Ok(d) = i8::try_from(d * dy.signum()) else {
+                        continue;
                     };
 
                     let position = from.add(&CoordinateDelta(0, d), board);

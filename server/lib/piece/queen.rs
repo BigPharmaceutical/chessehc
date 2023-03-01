@@ -29,8 +29,6 @@ impl Piece for Queen {
         let dy_a = to.1 - from.1;
         let dy_b = dy_a.signum() * (dy_a.abs() - board.height());
 
-        println!("{from} -> {to}");
-
         if dy_a == 0 {
             // If it would have to move horizontally:
             // Check that the move is non-zero
@@ -39,9 +37,8 @@ impl Piece for Queen {
             }
 
             for d in 1..dx.abs() {
-                let d = match i8::try_from(d * dx.signum()) {
-                    Ok(value) => value,
-                    Err(_) => continue,
+                let Ok(d) = i8::try_from(d * dx.signum()) else {
+                    continue;
                 };
 
                 let position = from.add(&CoordinateDelta(d, 0), board);
@@ -65,9 +62,8 @@ impl Piece for Queen {
 
                 // Check that no piece is between the origin and target
                 for d in 1..dy.abs() {
-                    let d = match i8::try_from(d) {
-                        Ok(value) => value,
-                        Err(_) => continue,
+                    let Ok(d) = i8::try_from(d) else {
+                        continue;
                     };
 
                     let position = from.add(
@@ -77,7 +73,6 @@ impl Piece for Queen {
                         ),
                         board,
                     );
-                    println!("Checking {position}");
                     if board
                         .get(position)
                         .expect("could not get spot between two valid spots")
@@ -166,6 +161,9 @@ mod test {
             .add_piece(1, Box::new(Queen::new()), Coordinate(4, 3))
             .expect("failed to add third queen");
         board
+            .add_piece(1, Box::new(Queen::new()), Coordinate(4, 8))
+            .expect("failed to add third queen");
+        board
             .add_piece(1, Box::new(Queen::new()), Coordinate(6, 2))
             .expect("failed to add fourth queen");
         board
@@ -175,9 +173,9 @@ mod test {
         let queen = board.get_piece(queen_id).expect("failed to get queen");
 
         let tests = [
-            [true, false, false, false, true, false, false, false, false],
-            [false, true, false, false, true, false, false, false, false],
-            [false, false, true, false, true, false, true, false, false],
+            [true, false, false, false, false, false, false, false, false],
+            [false, true, false, false, false, false, false, false, false],
+            [false, false, true, false, false, false, true, false, false],
             [false, false, false, true, true, true, false, false, false],
             [false, true, true, true, false, true, true, true, true],
             [false, false, false, true, true, true, false, false, false],
@@ -201,7 +199,7 @@ mod test {
         }
     }
 
-    // #[test]
+    #[test]
     fn moving() {
         let queen_position = Coordinate(4, 4);
 
@@ -216,6 +214,9 @@ mod test {
             .add_piece(1, Box::new(Queen::new()), Coordinate(4, 3))
             .expect("failed to add third queen");
         board
+            .add_piece(1, Box::new(Queen::new()), Coordinate(4, 8))
+            .expect("failed to add third queen");
+        board
             .add_piece(1, Box::new(Queen::new()), Coordinate(6, 2))
             .expect("failed to add fourth queen");
         board
@@ -223,9 +224,9 @@ mod test {
             .expect("failed to add fifth queen");
 
         let tests = [
-            [true, false, false, false, true, false, false, false, false],
-            [false, true, false, false, true, false, false, false, false],
-            [false, false, true, false, true, false, true, false, false],
+            [true, false, false, false, false, false, false, false, false],
+            [false, true, false, false, false, false, false, false, false],
+            [false, false, true, false, false, false, true, false, false],
             [false, false, false, true, true, true, false, false, false],
             [false, true, true, true, false, true, true, true, true],
             [false, false, false, true, true, true, false, false, false],

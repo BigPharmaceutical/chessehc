@@ -38,9 +38,8 @@ impl Piece for Bishop {
 
             // Check that no piece is between the origin and target
             for d in 1..dx.abs() {
-                let d = match i8::try_from(d) {
-                    Ok(value) => value,
-                    Err(_) => continue,
+                let Ok(d) = i8::try_from(d) else {
+                    continue;
                 };
                 let position = from.add(
                     &CoordinateDelta(
