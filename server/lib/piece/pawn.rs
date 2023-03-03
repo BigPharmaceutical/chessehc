@@ -1,9 +1,9 @@
 use crate::{
-    board::Board,
+    board::{Board, Error::CoordinateNotOnBoard},
     logic::{Coordinate, CoordinateDelta, Move},
 };
 
-use super::Piece;
+use super::{Piece, Pieces};
 
 #[derive(Debug)]
 /// Pawn piece
@@ -22,6 +22,10 @@ impl Piece for Pawn {
         1
     }
 
+    fn blockable(&self) -> bool {
+        false
+    }
+
     fn moves(&self) -> u16 {
         self.0
     }
@@ -30,30 +34,24 @@ impl Piece for Pawn {
         self.1
     }
 
-    fn is_attacking(&self, board: &Board, from: &Coordinate, to: &Coordinate) -> bool {
-        let dx = to.0 - from.0;
-        if dx.abs() != 1 {
-            return false;
+    fn add_attacks(&self, board: &mut Board, piece_id: usize, from: Coordinate) {
+        for dx in [-1, 1] {
+            let position = from.add(&CoordinateDelta(dx, self.2), board);
+
+            let result = board.attack(position, piece_id);
+            if let Err(err) = &result {
+                if !matches!(err, CoordinateNotOnBoard(..)) {
+                    result.expect("failed to attack spot");
+                }
+            };
         }
-
-        let dy = if to.1 - from.1 == board.height() - 1 {
-            -1
-        } else {
-            (to.1 - from.1).rem_euclid(board.height())
-        };
-
-        // Check the distance and direction of the attack
-        if dy.abs() != 1 || dy.is_positive() != self.2.is_positive() {
-            return false;
-        }
-
-        true
     }
 
     fn is_valid_move(
         &self,
-        target: Option<&(u8, Box<dyn Piece>)>,
         board: &Board,
+        pieces: &Pieces,
+        target: Option<&(u8, Box<dyn Piece>)>,
         r#move: &Move,
         to: &Coordinate,
     ) -> bool {
@@ -79,6 +77,7 @@ impl Piece for Pawn {
         if self.0 == 0 && r#move.delta.0 == 0 && r#move.delta.1.abs() == 2 {
             return board
                 .get(
+                    pieces,
                     r#move
                         .from
                         .add(&CoordinateDelta(r#move.delta.0 / 2, 0), board),
@@ -92,7 +91,7 @@ impl Piece for Pawn {
             for delta in [CoordinateDelta(0, 1), CoordinateDelta(0, -1)] {
                 let ep_target = to.add(&delta, board);
                 if let Some(ep_piece) = board
-                    .get(ep_target)
+                    .get(pieces, ep_target)
                     .expect("could not get spot for En Passant")
                 {
                     // If that piece is on the same side, ignore it
@@ -117,9 +116,14 @@ impl Piece for Pawn {
         false
     }
 
+    fn increment_moves(&mut self) {
+        self.0 += 1;
+    }
+
     fn mid_move(
         &mut self,
         board: &mut Board,
+        pieces: &mut Pieces,
         r#move: &Move,
         to: &Coordinate,
     ) -> (u8, Option<Box<dyn Piece>>) {
@@ -133,8 +137,6 @@ impl Piece for Pawn {
             ));
         }
 
-        self.0 += 1;
-
         // En passant
         if r#move.delta.0.abs() == 1 && r#move.delta.1.abs() == 1 {
             let mut points = 0;
@@ -144,13 +146,10 @@ impl Piece for Pawn {
             for delta in [CoordinateDelta(0, 1), CoordinateDelta(0, -1)] {
                 let ep_target = to.add(&delta, board);
                 let ep_spot = board
-                    .get_id(ep_target)
+                    .get_spot(ep_target)
                     .expect("could not get spot for En Passant");
 
-                if let Some(ep_piece_id) = ep_spot {
-                    let ep_piece = board
-                        .get_piece(*ep_piece_id)
-                        .expect("could not pet piece for En Passant");
+                if let Some(ep_piece) = ep_spot.get(pieces) {
                     // If that piece is on the same side, ignore it
                     if ep_piece.0 == r#move.player {
                         continue;
@@ -162,15 +161,17 @@ impl Piece for Pawn {
                         // then this pawn can perform En Passant
                         if turn - pawn_move.0 < players && pawn_move.1 == *to {
                             let ep_spot = board
-                                .get_id_mut(ep_target)
+                                .get_spot_mut(ep_target)
                                 .expect("could not get spot mutably for En Passant");
 
                             let taken_id = ep_spot
                                 .take()
                                 .expect("tried to take a spot without a piece in En Passant");
-                            points += board
-                                .get_piece(taken_id)
-                                .expect("error whilst getting piece taken in En Passant")
+                            board.remove_attacks(taken_id);
+
+                            points += pieces
+                                .get(taken_id)
+                                .expect("could not get taken piece in En Passant")
                                 .1
                                 .capture_points();
                         }
@@ -190,6 +191,7 @@ mod test {
     use crate::{
         board::Board,
         logic::{Coordinate, CoordinateDelta, Move},
+        piece::Pieces,
     };
 
     use super::Pawn;
@@ -198,11 +200,15 @@ mod test {
     fn attacking() {
         let pawn_position = Coordinate(2, 1);
 
+        let mut pieces = Pieces::new_with_capacity(1);
         let mut board = Board::new(1, 5, 4).expect("failed to create board");
-        let pawn_id = board
-            .add_piece(0, Box::new(Pawn::new(1)), pawn_position)
+
+        let pawn_id = pieces.push(0, Box::new(Pawn::new(1)));
+
+        board
+            .add_piece(&pieces, pawn_id, pawn_position)
             .expect("failed to add pawn");
-        let pawn = board.get_piece(pawn_id).expect("failed to get pawn");
+        pieces.get(pawn_id).expect("failed to get pawn");
 
         let tests = [
             [false; 5],
@@ -213,11 +219,13 @@ mod test {
 
         for (y, rank) in tests.iter().enumerate() {
             for (x, &expected) in rank.iter().enumerate() {
-                let result = pawn.1.is_attacking(
-                    &board,
-                    &pawn_position,
-                    &Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap()),
-                );
+                let result = board
+                    .get_spot(Coordinate(
+                        i16::try_from(x).unwrap(),
+                        i16::try_from(y).unwrap(),
+                    ))
+                    .unwrap()
+                    .is_being_attacked(&pieces, 1);
                 assert!(
                     result == expected,
                     "test failed: {pawn_position} -x ({x}, {y}), {result} ({expected})"
@@ -230,9 +238,13 @@ mod test {
     fn moving() {
         let pawn_position = Coordinate(2, 1);
 
+        let mut pieces = Pieces::new_with_capacity(1);
         let mut board = Board::new(1, 5, 4).expect("failed to create board");
+
+        let pawn_id = pieces.push(0, Box::new(Pawn::new(1)));
+
         board
-            .add_piece(0, Box::new(Pawn::new(1)), pawn_position)
+            .add_piece(&pieces, pawn_id, pawn_position)
             .expect("failed to add pawn");
 
         let tests = [
@@ -245,15 +257,18 @@ mod test {
         for (y, rank) in tests.iter().enumerate() {
             for (x, &expected) in rank.iter().enumerate() {
                 let result = board
-                    .is_valid_move(Move {
-                        player: 0,
-                        from: pawn_position,
-                        delta: CoordinateDelta(
-                            i8::try_from(x).unwrap() - i8::try_from(pawn_position.0).unwrap(),
-                            i8::try_from(y).unwrap() - i8::try_from(pawn_position.1).unwrap(),
-                        ),
-                        data: 0,
-                    })
+                    .is_valid_move(
+                        &pieces,
+                        Move {
+                            player: 0,
+                            from: pawn_position,
+                            delta: CoordinateDelta(
+                                i8::try_from(x).unwrap() - i8::try_from(pawn_position.0).unwrap(),
+                                i8::try_from(y).unwrap() - i8::try_from(pawn_position.1).unwrap(),
+                            ),
+                            data: 0,
+                        },
+                    )
                     .expect("failed to validate move");
                 assert!(
                     result == expected,
@@ -266,39 +281,50 @@ mod test {
     #[test]
     /// Test En Passant logic (heterodirectional)
     fn en_passant_heterodirectional() {
-        let pawn_position_1 = Coordinate(1, 1);
-        let pawn_position_2 = Coordinate(2, 3);
+        let pawn_1_position = Coordinate(1, 1);
+        let pawn_2_position = Coordinate(2, 3);
 
+        let mut pieces = Pieces::new_with_capacity(2);
         let mut board = Board::new(2, 4, 5).expect("failed to create board");
+
+        let pawn_1_id = pieces.push(0, Box::new(Pawn::new(1)));
+        let pawn_2_id = pieces.push(1, Box::new(Pawn::new(-1)));
+
         board
-            .add_piece(0, Box::new(Pawn::new(1)), pawn_position_1)
+            .add_piece(&mut pieces, pawn_1_id, pawn_1_position)
             .expect("failed to add pawn");
-        let pawn_id_2 = board
-            .add_piece(1, Box::new(Pawn::new(-1)), pawn_position_2)
+        board
+            .add_piece(&mut pieces, pawn_2_id, pawn_2_position)
             .expect("failed to add pawn");
 
         board
-            .make_move(Move {
-                player: 0,
-                from: pawn_position_1,
-                delta: CoordinateDelta(0, 2),
-                data: 0,
-            })
+            .make_move(
+                &mut pieces,
+                Move {
+                    player: 0,
+                    from: pawn_1_position,
+                    delta: CoordinateDelta(0, 2),
+                    data: 0,
+                },
+            )
             .expect("failed to make first move");
 
         board
-            .make_move(Move {
-                player: 1,
-                from: pawn_position_2,
-                delta: CoordinateDelta(-1, -1),
-                data: 0,
-            })
+            .make_move(
+                &mut pieces,
+                Move {
+                    player: 1,
+                    from: pawn_2_position,
+                    delta: CoordinateDelta(-1, -1),
+                    data: 0,
+                },
+            )
             .expect("failed to make second move");
 
         let expected_board = [
             [None; 4],
             [None; 4],
-            [None, Some(pawn_id_2), None, None],
+            [None, Some(pawn_2_id), None, None],
             [None; 4],
             [None; 4],
         ];
@@ -306,8 +332,8 @@ mod test {
         for (y, rank) in expected_board.iter().enumerate() {
             for (x, expected) in rank.iter().enumerate() {
                 let coordinate = Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap());
-                let spot = board.get_id(coordinate).expect("could not get coordinate");
-                let result = match (spot, expected) {
+                let spot = board.get_spot(coordinate).expect("could not get spot");
+                let result = match (spot.get_id(), expected) {
                     (Some(a), Some(b)) if a == b => true,
                     (None, None) => true,
                     _ => false,
@@ -324,39 +350,50 @@ mod test {
     #[test]
     /// Test En Passant logic (homodirectional)
     fn en_passant_homodirectional() {
-        let pawn_position_1 = Coordinate(1, 1);
-        let pawn_position_2 = Coordinate(2, 1);
+        let pawn_1_position = Coordinate(1, 1);
+        let pawn_2_position = Coordinate(2, 1);
 
+        let mut pieces = Pieces::new_with_capacity(2);
         let mut board = Board::new(2, 4, 5).expect("failed to create board");
+
+        let pawn_1_id = pieces.push(0, Box::new(Pawn::new(1)));
+        let pawn_2_id = pieces.push(1, Box::new(Pawn::new(1)));
+
         board
-            .add_piece(0, Box::new(Pawn::new(1)), pawn_position_1)
+            .add_piece(&pieces, pawn_1_id, pawn_1_position)
             .expect("failed to add pawn");
-        let pawn_id_2 = board
-            .add_piece(1, Box::new(Pawn::new(1)), pawn_position_2)
+        board
+            .add_piece(&pieces, pawn_2_id, pawn_2_position)
             .expect("failed to add pawn");
 
         board
-            .make_move(Move {
-                player: 0,
-                from: pawn_position_1,
-                delta: CoordinateDelta(0, 2),
-                data: 0,
-            })
+            .make_move(
+                &mut pieces,
+                Move {
+                    player: 0,
+                    from: pawn_1_position,
+                    delta: CoordinateDelta(0, 2),
+                    data: 0,
+                },
+            )
             .expect("failed to make first move");
 
         board
-            .make_move(Move {
-                player: 1,
-                from: pawn_position_2,
-                delta: CoordinateDelta(-1, 1),
-                data: 0,
-            })
+            .make_move(
+                &mut pieces,
+                Move {
+                    player: 1,
+                    from: pawn_2_position,
+                    delta: CoordinateDelta(-1, 1),
+                    data: 0,
+                },
+            )
             .expect("failed to make second move");
 
         let expected_board = [
             [None; 4],
             [None; 4],
-            [None, Some(pawn_id_2), None, None],
+            [None, Some(pawn_2_id), None, None],
             [None; 4],
             [None; 4],
         ];
@@ -364,8 +401,10 @@ mod test {
         for (y, rank) in expected_board.iter().enumerate() {
             for (x, expected) in rank.iter().enumerate() {
                 let coordinate = Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap());
-                let spot = board.get_id(coordinate).expect("could not get coordinate");
-                let result = match (spot, expected) {
+                let spot = board
+                    .get_spot(coordinate)
+                    .expect("could not get coordinate");
+                let result = match (spot.get_id(), expected) {
                     (Some(a), Some(b)) if a == b => true,
                     (None, None) => true,
                     _ => false,

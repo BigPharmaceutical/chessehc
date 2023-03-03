@@ -1,6 +1,6 @@
 [package]
 name = "chessehc_server"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Tom Boddaert (tomBoddaert) <chessehc@tomboddaert.com>", "BigPharmaceutical"]
 edition = "2021"
 description = "A variation of Chess on the surface of a tube; server and library"

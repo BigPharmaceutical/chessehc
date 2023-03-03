@@ -5,6 +5,9 @@ use crate::{
     logic::{Coordinate, Move},
 };
 
+mod pieces;
+pub use pieces::*;
+
 pub trait Piece
 where
     Self: Debug,
@@ -15,6 +18,9 @@ where
     }
     /// The number of points gained capturing this piece
     fn capture_points(&self) -> u8;
+    /// Whether this piece's attacks can be blocked
+    /// (determines whether the attacks need to be recalculated when blocking)
+    fn blockable(&self) -> bool;
     /// Whether this piece can be castled by a king (for Castling)
     fn castleable(&self) -> bool {
         false
@@ -28,25 +34,31 @@ where
         None
     }
 
-    /// Checks if the piece is attacking a coordinate
-    fn is_attacking(&self, board: &Board, from: &Coordinate, to: &Coordinate) -> bool;
+    /// Add the piece's attacks to the board
+    fn add_attacks(&self, board: &mut Board, piece_id: usize, from: Coordinate);
 
     /// Validates a move: 'from' -> 'to'
     fn is_valid_move(
         &self,
-        target: Option<&(u8, Box<dyn Piece>)>,
         board: &Board,
+        pieces: &Pieces,
+        target: Option<&(u8, Box<dyn Piece>)>,
         r#move: &Move,
         to: &Coordinate,
     ) -> bool;
     #[allow(unused)]
+    /// Increment moves
+    fn increment_moves(&mut self);
     /// Run while the piece is being moved: 'from' -> 'to'
     fn mid_move(
         &mut self,
-        board: &mut Board,
-        r#move: &Move,
-        to: &Coordinate,
-    ) -> (u8, Option<Box<dyn Piece>>);
+        _board: &mut Board,
+        _pieces: &mut Pieces,
+        _move: &Move,
+        _to: &Coordinate,
+    ) -> (u8, Option<Box<dyn Piece>>) {
+        (0, None)
+    }
 }
 
 #[derive(Debug)]
@@ -55,37 +67,34 @@ impl Piece for Dummy {
     fn capture_points(&self) -> u8 {
         0
     }
+    fn blockable(&self) -> bool {
+        false
+    }
     fn moves(&self) -> u16 {
         0
     }
-    fn is_attacking(&self, _board: &Board, _from: &Coordinate, _to: &Coordinate) -> bool {
-        false
-    }
+    fn add_attacks(&self, _board: &mut Board, _piece_id: usize, _from: Coordinate) {}
     fn is_valid_move(
         &self,
-        _target: Option<&(u8, Box<dyn Piece>)>,
         _board: &Board,
+        _pieces: &Pieces,
+        _target: Option<&(u8, Box<dyn Piece>)>,
         _move: &Move,
         _to: &Coordinate,
     ) -> bool {
         false
     }
-    fn mid_move(
-        &mut self,
-        _board: &mut Board,
-        _move: &Move,
-        _to: &Coordinate,
-    ) -> (u8, Option<Box<dyn Piece>>) {
-        (0, None)
-    }
+    fn increment_moves(&mut self) {}
 }
 
 mod bishop;
+mod king;
 mod knight;
 mod pawn;
 mod queen;
 mod rook;
 pub use bishop::*;
+pub use king::*;
 pub use knight::*;
 pub use pawn::*;
 pub use queen::*;

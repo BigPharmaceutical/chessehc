@@ -1,9 +1,9 @@
 use crate::{
-    board::Board,
+    board::{Board, Error::CoordinateNotOnBoard},
     logic::{Coordinate, CoordinateDelta, Move},
 };
 
-use super::Piece;
+use super::{Piece, Pieces};
 
 #[derive(Debug, Default)]
 pub struct Queen(u16);
@@ -20,78 +20,62 @@ impl Piece for Queen {
         9
     }
 
+    fn blockable(&self) -> bool {
+        true
+    }
+
     fn moves(&self) -> u16 {
         self.0
     }
 
-    fn is_attacking(&self, board: &Board, from: &Coordinate, to: &Coordinate) -> bool {
-        let dx = to.0 - from.0;
-        let dy_a = to.1 - from.1;
-        let dy_b = dy_a.signum() * (dy_a.abs() - board.height());
-
-        if dy_a == 0 {
-            // If it would have to move horizontally:
-            // Check that the move is non-zero
-            if dx == 0 {
-                return false;
-            }
-
-            for d in 1..dx.abs() {
-                let Ok(d) = i8::try_from(d * dx.signum()) else {
-                    continue;
+    fn add_attacks(&self, board: &mut Board, piece_id: usize, from: Coordinate) {
+        for dir in [
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ] {
+            let mut d: i8 = 0;
+            loop {
+                d = match d.checked_add(1) {
+                    Some(value) => value,
+                    None => break,
                 };
 
-                let position = from.add(&CoordinateDelta(d, 0), board);
+                let position = from.add(&CoordinateDelta(d * dir.0, d * dir.1), board);
+
+                // Wrapping case
+                if position == from {
+                    break;
+                }
+
+                let result = board.attack(position, piece_id);
+                match result {
+                    Err(CoordinateNotOnBoard(..)) => break,
+                    Err(_) => result.expect("failed to add attack"),
+                    _ => (),
+                }
+
                 if board
-                    .get(position)
-                    .expect("could not get spot between two valid spots")
-                    .is_some()
+                    .get_spot(position)
+                    .expect("failed to get spot")
+                    .is_occupied()
                 {
-                    return false;
+                    break;
                 }
             }
-
-            true
-        } else {
-            // Assume it was going up then down
-            'up_down_loop: for dy in [dy_a, dy_b] {
-                // Check that the move is vertical or diagonal
-                if dx != 0 && dx.abs() != dy.abs() {
-                    continue;
-                }
-
-                // Check that no piece is between the origin and target
-                for d in 1..dy.abs() {
-                    let Ok(d) = i8::try_from(d) else {
-                        continue;
-                    };
-
-                    let position = from.add(
-                        &CoordinateDelta(
-                            d * i8::try_from(dx.signum()).unwrap(),
-                            d * i8::try_from(dy.signum()).unwrap(),
-                        ),
-                        board,
-                    );
-                    if board
-                        .get(position)
-                        .expect("could not get spot between two valid spots")
-                        .is_some()
-                    {
-                        continue 'up_down_loop;
-                    }
-                }
-
-                return true;
-            }
-            false
         }
     }
 
     fn is_valid_move(
         &self,
-        _target: Option<&(u8, Box<dyn Piece>)>,
         board: &Board,
+        pieces: &Pieces,
+        _target: Option<&(u8, Box<dyn Piece>)>,
         r#move: &Move,
         _to: &Coordinate,
     ) -> bool {
@@ -115,7 +99,7 @@ impl Piece for Queen {
                 board,
             );
             if board
-                .get(position)
+                .get(pieces, position)
                 .expect("could not get spot between two valid spots")
                 .is_some()
             {
@@ -126,14 +110,8 @@ impl Piece for Queen {
         true
     }
 
-    fn mid_move(
-        &mut self,
-        _board: &mut Board,
-        _move: &Move,
-        _to: &Coordinate,
-    ) -> (u8, Option<Box<dyn Piece>>) {
+    fn increment_moves(&mut self) {
         self.0 += 1;
-        (0, None)
     }
 }
 
@@ -142,86 +120,48 @@ mod test {
     use crate::{
         board::Board,
         logic::{Coordinate, CoordinateDelta, Move},
+        piece::Pieces,
     };
 
     use super::Queen;
 
     #[test]
     fn attacking() {
-        let queen_position = Coordinate(4, 4);
+        let queen_1_position = Coordinate(4, 4);
+        let queen_2_position = Coordinate(1, 4);
+        let queen_3_position = Coordinate(4, 3);
+        let queen_4_position = Coordinate(4, 8);
+        let queen_5_position = Coordinate(6, 2);
+        let queen_6_position = Coordinate(7, 7);
 
+        let mut pieces = Pieces::new_with_capacity(6);
         let mut board = Board::new(2, 9, 9).expect("failed to create board");
-        let queen_id = board
-            .add_piece(0, Box::new(Queen::new()), queen_position)
+
+        let queen_1_id = pieces.push(0, Box::new(Queen::new()));
+        let queen_2_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_3_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_4_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_5_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_6_id = pieces.push(1, Box::new(Queen::new()));
+
+        board
+            .add_piece(&pieces, queen_1_id, queen_1_position)
             .expect("failed to add queen");
         board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(1, 4))
+            .add_piece(&pieces, queen_2_id, queen_2_position)
             .expect("failed to add second queen");
         board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(4, 3))
+            .add_piece(&pieces, queen_3_id, queen_3_position)
             .expect("failed to add third queen");
         board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(4, 8))
-            .expect("failed to add third queen");
-        board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(6, 2))
+            .add_piece(&pieces, queen_4_id, queen_4_position)
             .expect("failed to add fourth queen");
         board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(7, 7))
+            .add_piece(&pieces, queen_5_id, queen_5_position)
             .expect("failed to add fifth queen");
-
-        let queen = board.get_piece(queen_id).expect("failed to get queen");
-
-        let tests = [
-            [true, false, false, false, false, false, false, false, false],
-            [false, true, false, false, false, false, false, false, false],
-            [false, false, true, false, false, false, true, false, false],
-            [false, false, false, true, true, true, false, false, false],
-            [false, true, true, true, false, true, true, true, true],
-            [false, false, false, true, true, true, false, false, false],
-            [false, false, true, false, true, false, true, false, false],
-            [false, true, false, false, true, false, false, true, false],
-            [true, false, false, false, true, false, false, false, false],
-        ];
-
-        for (y, rank) in tests.iter().enumerate() {
-            for (x, &expected) in rank.iter().enumerate() {
-                let result = queen.1.is_attacking(
-                    &board,
-                    &queen_position,
-                    &Coordinate(i16::try_from(x).unwrap(), i16::try_from(y).unwrap()),
-                );
-                assert!(
-                    result == expected,
-                    "test failed: {queen_position} -x ({x}, {y}), {result} ({expected})"
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn moving() {
-        let queen_position = Coordinate(4, 4);
-
-        let mut board = Board::new(2, 9, 9).expect("failed to create board");
         board
-            .add_piece(0, Box::new(Queen::new()), queen_position)
-            .expect("failed to add queen");
-        board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(1, 4))
-            .expect("failed to add second queen");
-        board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(4, 3))
-            .expect("failed to add third queen");
-        board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(4, 8))
-            .expect("failed to add third queen");
-        board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(6, 2))
-            .expect("failed to add fourth queen");
-        board
-            .add_piece(1, Box::new(Queen::new()), Coordinate(7, 7))
-            .expect("failed to add fifth queen");
+            .add_piece(&pieces, queen_6_id, queen_6_position)
+            .expect("failed to add sixth queen");
 
         let tests = [
             [true, false, false, false, false, false, false, false, false],
@@ -238,19 +178,91 @@ mod test {
         for (y, rank) in tests.iter().enumerate() {
             for (x, &expected) in rank.iter().enumerate() {
                 let result = board
-                    .is_valid_move(Move {
-                        player: 0,
-                        from: queen_position,
-                        delta: CoordinateDelta(
-                            i8::try_from(x).unwrap() - i8::try_from(queen_position.0).unwrap(),
-                            i8::try_from(y).unwrap() - i8::try_from(queen_position.1).unwrap(),
-                        ),
-                        data: 0,
-                    })
+                    .get_spot(Coordinate(
+                        i16::try_from(x).unwrap(),
+                        i16::try_from(y).unwrap(),
+                    ))
+                    .unwrap()
+                    .is_being_attacked(&pieces, 1);
+                assert!(
+                    result == expected,
+                    "test failed: {queen_1_position} -x ({x}, {y}), {result} ({expected})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn moving() {
+        let queen_1_position = Coordinate(4, 4);
+        let queen_2_position = Coordinate(1, 4);
+        let queen_3_position = Coordinate(4, 3);
+        let queen_4_position = Coordinate(4, 8);
+        let queen_5_position = Coordinate(6, 2);
+        let queen_6_position = Coordinate(7, 7);
+
+        let mut pieces = Pieces::new_with_capacity(6);
+        let mut board = Board::new(2, 9, 9).expect("failed to create board");
+
+        let queen_1_id = pieces.push(0, Box::new(Queen::new()));
+        let queen_2_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_3_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_4_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_5_id = pieces.push(1, Box::new(Queen::new()));
+        let queen_6_id = pieces.push(1, Box::new(Queen::new()));
+
+        board
+            .add_piece(&pieces, queen_1_id, queen_1_position)
+            .expect("failed to add queen");
+        board
+            .add_piece(&pieces, queen_2_id, queen_2_position)
+            .expect("failed to add second queen");
+        board
+            .add_piece(&pieces, queen_3_id, queen_3_position)
+            .expect("failed to add third queen");
+        board
+            .add_piece(&pieces, queen_4_id, queen_4_position)
+            .expect("failed to add fourth queen");
+        board
+            .add_piece(&pieces, queen_5_id, queen_5_position)
+            .expect("failed to add fifth queen");
+        board
+            .add_piece(&pieces, queen_6_id, queen_6_position)
+            .expect("failed to add sixth queen");
+
+        let tests = [
+            [true, false, false, false, false, false, false, false, false],
+            [false, true, false, false, false, false, false, false, false],
+            [false, false, true, false, false, false, true, false, false],
+            [false, false, false, true, true, true, false, false, false],
+            [false, true, true, true, false, true, true, true, true],
+            [false, false, false, true, true, true, false, false, false],
+            [false, false, true, false, true, false, true, false, false],
+            [false, true, false, false, true, false, false, true, false],
+            [true, false, false, false, true, false, false, false, false],
+        ];
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let result = board
+                    .is_valid_move(
+                        &pieces,
+                        Move {
+                            player: 0,
+                            from: queen_1_position,
+                            delta: CoordinateDelta(
+                                i8::try_from(x).unwrap()
+                                    - i8::try_from(queen_1_position.0).unwrap(),
+                                i8::try_from(y).unwrap()
+                                    - i8::try_from(queen_1_position.1).unwrap(),
+                            ),
+                            data: 0,
+                        },
+                    )
                     .expect("failed to validate move");
                 assert!(
                     result == expected,
-                    "test failed: {queen_position} -> ({x}, {y}), {result} ({expected})"
+                    "test failed: {queen_1_position} -> ({x}, {y}), {result} ({expected})"
                 );
             }
         }
