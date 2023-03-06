@@ -40,14 +40,14 @@ void drawChar(SDL_Surface* destination, char character, SDL_Rect* target) {
 	SDL_BlitScaled(charSurface, &source, destination, target);
 }
 
-void drawString(SDL_Surface* destination, char* string, SDL_Rect* target) {
-	int originalX = target->x;
-	while (*string) {
-		drawChar(destination, *string, target);
-		string++;
-		target->x += target->w;
+void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing) {
+	SDL_Rect drawDest = *target;
+	char* drawStr = string;
+	while (*drawStr) {
+		drawChar(destination, *drawStr, &drawDest);
+		drawStr++;
+		drawDest.x += drawDest.w + spacing;
 	}
-	target->x = originalX;
 }
 
 void disposeFont() {

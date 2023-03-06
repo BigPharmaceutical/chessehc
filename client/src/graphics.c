@@ -29,10 +29,13 @@ int initGraphics() {
 	SDL_Rect temp;
 	temp.x = 10;
 	temp.y = 10;
-	temp.w = 32;
-	temp.h = 48;
-	drawString(drawSurface, "10110z1z", &temp);
-
+	temp.w = 24;
+	temp.h = 36;
+	drawString(drawSurface, "abcdefghijklmnopqrstuvwxyz", &temp, 2);
+	temp.y += temp.h + 10;
+	drawString(drawSurface, "ABCDEFHIJKLMNOPQRSTUVWXYZ", &temp, 2);
+	temp.y += temp.h + 10;
+	drawString(drawSurface, "0123456789", &temp, 2);
 	graphicsRender();	
 
 	return 1;
