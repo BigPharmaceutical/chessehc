@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include <SDL2/SDL.h>
+#include "gui.h"
 #include "font.h"
 
 SDL_Window* window;
@@ -31,11 +32,13 @@ int initGraphics() {
 	temp.y = 10;
 	temp.w = 24;
 	temp.h = 36;
-	drawString(drawSurface, "abcdefghijklmnopqrstuvwxyz", &temp, 2);
-	temp.y += temp.h + 10;
-	drawString(drawSurface, "ABCDEFHIJKLMNOPQRSTUVWXYZ", &temp, 2);
-	temp.y += temp.h + 10;
-	drawString(drawSurface, "0123456789", &temp, 2);
+	
+	GuiElement* a = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
+	GuiElement* b = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "hello world!");
+	guiContainerLink(a, b);
+	SDL_Surface* surf = guiContainerSurface(a);
+	SDL_BlitSurface(surf, fullRect, drawSurface, fullRect); 
+	
 	graphicsRender();	
 
 	return 1;
