@@ -1,6 +1,6 @@
 [package]
 name = "chessehc_server"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Tom Boddaert (tomBoddaert) <chessehc@tomboddaert.com>", "BigPharmaceutical"]
 edition = "2021"
 description = "A variation of Chess on the surface of a tube; server and library"
@@ -19,7 +19,9 @@ edition = "2021"
 crate-type = [ "lib" ]
 
 [features]
+standard_pieces = []
 server = []
+default = [ "standard_pieces" ]
 
 [[bin]]
 name = "chessehc_server"
