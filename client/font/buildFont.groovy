@@ -1,10 +1,21 @@
-FileOutputStream stream = new FileOutputStream("./font.bin", false)
-
+FileWriter writer = new FileWriter("./fontblob.c", false)
 charErr = null
 
+writer.write("const unsigned long FONTBLOB_LENGTH=${128 * 24};const unsigned char FONTBLOB[]={")
+
 for (short i = 0; i < 128; i++) {
-	stream.write(loadChar(i.toString().padLeft(3, '0') + ".txt"))
+	byte[] charBytes = loadChar(i.toString().padLeft(3, '0') + ".txt") as byte[]
+	for (short j = 0; j < 24; j++) {
+		writer.write("0x${String.format("%02X", charBytes[j])}")
+		if (i == 127 as short && j == 23 as short) {
+			writer.write("};")
+		} else {
+			writer.write(',')
+		}
+	}
+	writer.flush()
 }
+
 
 def loadChar(String filename) {
 	File target = new File("./raw/" + filename)

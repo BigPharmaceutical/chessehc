@@ -35,7 +35,10 @@ int initGraphics() {
 	
 	GuiElement* a = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
 	GuiElement* b = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "hello world!");
+	temp.y = 50;
+	GuiElement* c = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "o4it[p4'34");
 	guiContainerLink(a, b);
+	guiContainerLink(a, c);
 	SDL_Surface* surf = guiContainerSurface(a);
 	SDL_BlitSurface(surf, fullRect, drawSurface, fullRect); 
 	
