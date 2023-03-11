@@ -185,4 +185,8 @@ impl<Set: PieceSet> Game<Set> {
     pub fn board(&self) -> &Board<Set> {
         &self.board
     }
+
+    pub fn remove_player(&mut self, player: u8) -> Vec<PartialDelta<Set::PieceId>> {
+        self.board.remove_player(player)
+    }
 }
