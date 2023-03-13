@@ -16,15 +16,42 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "main.h"
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
 #include "graphics.h"
+#include "input.h"
 
-int main( int argc, char** args){
+char mainExit = 0;
+
+int main(int argc, char** args){
 	initGraphics();
-	SDL_Delay(10000);
-    
+	initInput();
+
+	while (!mainExit) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case (SDL_KEYDOWN):
+					handleInput(event.key.keysym);	
+					break;
+				
+				case (SDL_QUIT):
+					mainExit = 1;
+					break;
+
+				default:
+					break;
+			}
+		}
+	}
+
 	disposeGraphics();
+	disposeInput();
 	return 1;
+}
+
+void doMainExit() {
+	mainExit = 1;
 }

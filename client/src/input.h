@@ -1,22 +1,28 @@
 #ifndef H_INPUT
 #define H_INPUT
 
-#define INPUT_NUM_TEXTFIELD 16
+#include <SDL2/SDL_keyboard.h>
+
 #define INPUT_FLAGS_ENABLED 1
+#define INPUT_FLAGS_SELECTABLE 2
+
+#define INPUT_TYPE_TEXT 1
 
 
-typedef struct InputTextField {
+
+typedef struct InputField {
 	char id;
-	char* text;
-	char cursorPosition;
 	char flags;
-} InputTextField;
-
+	char type;
+	void* data;
+} InputField;
 
 void initInput();
 
-void handleInput();
+void handleInput(SDL_Keysym key);
 
-InputTextField* createInputText(unsigned char length);
+InputField* createInputText(unsigned char length, char flags);
+
+void disposeInput();
 
 #endif
