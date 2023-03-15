@@ -7,7 +7,7 @@ void initFont();
 
 void drawChar(SDL_Surface* destination, char character, SDL_Rect* target);
 
-void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing);
+void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing, char padLength);
 
 void disposeFont();
 

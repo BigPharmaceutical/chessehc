@@ -5,6 +5,8 @@
 
 #define GUI_ELEMENT_TYPE_CONTAINER 1
 #define GUI_ELEMENT_TYPE_TEXT 2
+#define GUI_ELEMENT_TYPE_TEXTFIELD 3
+
 
 typedef struct GuiElement {
 	SDL_Rect position;
@@ -12,6 +14,11 @@ typedef struct GuiElement {
 	char type;
 	void* data;
 } GuiElement;
+
+typedef struct InputTextData {
+	char* chars;
+	unsigned char length;
+} InputTextData;
 
 GuiElement* createGuiElement(SDL_Rect position, char flags,  char type, void* data);
 

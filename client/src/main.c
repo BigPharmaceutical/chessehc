@@ -21,34 +21,50 @@
 #include <stdio.h>
 
 #include "graphics.h"
+#include "font.h"
 #include "input.h"
+#include "content.h"
+#include "gui.h"
 
 char mainExit = 0;
 
 int main(int argc, char** args){
 	initGraphics();
+	initFont();
 	initInput();
+	initContent();
 
 	while (!mainExit) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case (SDL_KEYDOWN):
-					handleInput(event.key.keysym);	
+					// We still want to handle control characters
+					if (event.key.keysym.sym < 32) {
+						handleInput(event.key.keysym.sym);
+					}	
 					break;
 				
 				case (SDL_QUIT):
 					mainExit = 1;
 					break;
 
+				case (SDL_TEXTINPUT):
+					handleInput(event.text.text[0]);	
+					break;
+
 				default:
 					break;
 			}
 		}
+		SDL_BlitSurface(guiContainerSurface(currentContainer), fullRect, drawSurface, fullRect); 
+		graphicsRender();
 	}
 
 	disposeGraphics();
+	disposeFont();
 	disposeInput();
+	disposeContent();
 	return 1;
 }
 

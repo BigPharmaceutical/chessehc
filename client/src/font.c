@@ -35,13 +35,19 @@ void drawChar(SDL_Surface* destination, char character, SDL_Rect* target) {
 	SDL_BlitScaled(charSurface, &source, destination, target);
 }
 
-void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing) {
+void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing, char padLength) {
 	SDL_Rect drawDest = *target;
 	char* drawStr = string;
 	while (*drawStr) {
 		drawChar(destination, *drawStr, &drawDest);
 		drawStr++;
 		drawDest.x += drawDest.w + spacing;
+	}
+	if (padLength) {
+		for (char i = padLength - (char)(drawStr - string); i > 0; i--) {
+			drawChar(destination, ' ', &drawDest);
+			drawDest.x += drawDest.w + spacing;
+		}
 	}
 }
 

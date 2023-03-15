@@ -1,6 +1,8 @@
 #include "gui.h"
 #include "util.h"
 #include "font.h"
+#include "input.h"
+#include "graphics.h"
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
@@ -15,6 +17,10 @@ void disposeGuiDataContainer(GuiDataContainerType* data);
 void* createGuiDataText(char* param);
 void disposeGuiDataText(void* data);
 void drawGuiElementText(GuiElement* text, SDL_Surface* surface);
+
+void* createGuiDataTextfield(char param);
+void disposeGuiDataTextfield(void* data);
+void drawGuiElementTextfield(GuiElement* text, SDL_Surface* surface);
 
 //////// General ////////
 
@@ -32,6 +38,10 @@ GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) 
 		case GUI_ELEMENT_TYPE_TEXT:
 			element->data = createGuiDataText(param);
 			break;
+
+		case GUI_ELEMENT_TYPE_TEXTFIELD:
+			element->data = createGuiDataTextfield((long) param);
+			break;
 	}
 	return element;
 }
@@ -45,6 +55,9 @@ void disposeGuiElement(GuiElement* element) {
 		case GUI_ELEMENT_TYPE_TEXT:
 			disposeGuiDataText(element->data);
 			break;
+
+		case GUI_ELEMENT_TYPE_TEXTFIELD:
+			disposeGuiDataTextfield(element->data);
 	}
 	free(element);
 }
@@ -53,6 +66,10 @@ void drawGuiElement(GuiElement* element, SDL_Surface* surface) {
 	switch (element->type) {
 		case GUI_ELEMENT_TYPE_TEXT:
 			drawGuiElementText(element, surface);
+			break;
+	
+		case GUI_ELEMENT_TYPE_TEXTFIELD:
+			drawGuiElementTextfield(element, surface);
 			break;
 	}
 
@@ -133,5 +150,21 @@ void disposeGuiDataText(void* data) {
 }
 
 void drawGuiElementText(GuiElement* element, SDL_Surface* surface) {
-	drawString(surface, element->data, &(element->position), 1);
+	drawString(surface, element->data, &(element->position), 1, 0);
+}
+
+
+//////// Text Field ////////
+
+void* createGuiDataTextfield(char param) {
+	return createInputText(param, 0);
+}
+
+void disposeGuiDataTextfield(void* data) {
+	disposeOneInput(data);
+}
+
+void drawGuiElementTextfield(GuiElement* element, SDL_Surface* surface) {
+	InputTextData* field = ((InputField*)element->data)->data;
+	drawString(surface, field->chars, &(element->position), 1, field->length);
 }
