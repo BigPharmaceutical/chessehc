@@ -7,7 +7,7 @@
 #define INPUT_FLAGS_SELECTABLE 2
 
 #define INPUT_TYPE_TEXT 1
-
+#define INPUT_TYPE_BUTTON 2
 
 
 typedef struct InputField {
@@ -22,6 +22,8 @@ void initInput();
 void handleInput(char key);
 
 InputField* createInputText(unsigned char length, char flags);
+
+InputField* createInputButton(void (*onPress)(InputField*), char flags);
 
 void disposeInput();
 

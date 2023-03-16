@@ -22,6 +22,14 @@ void* createGuiDataTextfield(char param);
 void disposeGuiDataTextfield(void* data);
 void drawGuiElementTextfield(GuiElement* text, SDL_Surface* surface);
 
+typedef struct GuiDataButtonType {
+	char* text;
+	InputField* inputField;
+} GuiDataButtonType;
+GuiDataButtonType* createGuiDataButton(InputButtonData* param);
+void disposeGuiDataButton(GuiDataButtonType* data);
+void drawGuiElementButton(GuiElement* element, SDL_Surface* surface);
+
 //////// General ////////
 
 GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) {
@@ -42,6 +50,10 @@ GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) 
 		case GUI_ELEMENT_TYPE_TEXTFIELD:
 			element->data = createGuiDataTextfield((long) param);
 			break;
+		
+		case GUI_ELEMENT_TYPE_BUTTON:
+			element->data = createGuiDataButton(param);
+			break;
 	}
 	return element;
 }
@@ -58,6 +70,11 @@ void disposeGuiElement(GuiElement* element) {
 
 		case GUI_ELEMENT_TYPE_TEXTFIELD:
 			disposeGuiDataTextfield(element->data);
+			break;
+
+		case GUI_ELEMENT_TYPE_BUTTON:
+			disposeGuiDataButton(element->data);
+			break;
 	}
 	free(element);
 }
@@ -70,6 +87,10 @@ void drawGuiElement(GuiElement* element, SDL_Surface* surface) {
 	
 		case GUI_ELEMENT_TYPE_TEXTFIELD:
 			drawGuiElementTextfield(element, surface);
+			break;
+
+		case GUI_ELEMENT_TYPE_BUTTON:
+			drawGuiElementButton(element, surface);
 			break;
 	}
 
@@ -157,7 +178,7 @@ void drawGuiElementText(GuiElement* element, SDL_Surface* surface) {
 //////// Text Field ////////
 
 void* createGuiDataTextfield(char param) {
-	return createInputText(param, 0);
+	return createInputText(param, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
 }
 
 void disposeGuiDataTextfield(void* data) {
@@ -165,6 +186,30 @@ void disposeGuiDataTextfield(void* data) {
 }
 
 void drawGuiElementTextfield(GuiElement* element, SDL_Surface* surface) {
-	InputTextData* field = ((InputField*)element->data)->data;
+	InputTextfieldData* field = ((InputField*)element->data)->data;
 	drawString(surface, field->chars, &(element->position), 1, field->length);
+}
+
+
+//////// Button ////////
+
+GuiDataButtonType* createGuiDataButton(InputButtonData* param) {
+	GuiDataButtonType* data = malloc(sizeof(GuiDataButtonType));
+	data->inputField = createInputButton(param->onPress, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
+
+	char length = 0;
+	while (param->text[length++] != '\0') {}
+	data->text = malloc(length);
+	memcpy(data->text, param->text, length); 
+	return data;
+}
+
+void disposeGuiDataButton(GuiDataButtonType* data) {
+	disposeOneInput(data->inputField);
+	free(data);
+}
+
+void drawGuiElementButton(GuiElement* element, SDL_Surface* surface) {
+	InputButtonData* data = element->data;
+	drawString(surface, data->text, &(element->position), 1, 0);
 }
