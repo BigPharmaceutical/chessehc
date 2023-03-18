@@ -8,6 +8,7 @@
 #define GUI_ELEMENT_TYPE_TEXT 2
 #define GUI_ELEMENT_TYPE_TEXTFIELD 3
 #define GUI_ELEMENT_TYPE_BUTTON 4
+#define GUI_ELEMENT_TYPE_PROXY 5
 
 typedef struct GuiElement {
 	SDL_Rect position;
@@ -26,10 +27,16 @@ typedef struct InputButtonData {
 	void (*onPress)(InputField*);
 } InputButtonData;
 
+
+typedef struct GuiProxyData {
+	void* (*onCreate)(struct GuiProxyData*);
+	void (*onDispose)(struct GuiProxyData*);
+	void (*onDraw)(GuiElement*, SDL_Surface*); 
+} GuiProxyData;
+
 GuiElement* createGuiElement(SDL_Rect position, char flags,  char type, void* data);
 
 void disposeGuiElement(GuiElement* element);
-
 
 void guiContainerLink(GuiElement* container, GuiElement* child);
 

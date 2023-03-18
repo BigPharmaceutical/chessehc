@@ -30,6 +30,15 @@ GuiDataButtonType* createGuiDataButton(InputButtonData* param);
 void disposeGuiDataButton(GuiDataButtonType* data);
 void drawGuiElementButton(GuiElement* element, SDL_Surface* surface);
 
+typedef struct GuiDataProxyType {
+	GuiProxyData* proxy;
+	void* data;
+} GuiDataProxyType;
+GuiDataProxyType* createGuiDataProxy(GuiProxyData* param);
+void disposeGuiDataProxy(GuiDataProxyType* data);
+void drawGuiElementProxy(GuiElement* element, SDL_Surface* surface);
+
+
 //////// General ////////
 
 GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) {
@@ -54,6 +63,10 @@ GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) 
 		case GUI_ELEMENT_TYPE_BUTTON:
 			element->data = createGuiDataButton(param);
 			break;
+
+		case GUI_ELEMENT_TYPE_PROXY:
+			element->data = createGuiDataProxy(param);
+			break;
 	}
 	return element;
 }
@@ -75,6 +88,10 @@ void disposeGuiElement(GuiElement* element) {
 		case GUI_ELEMENT_TYPE_BUTTON:
 			disposeGuiDataButton(element->data);
 			break;
+
+		case GUI_ELEMENT_TYPE_PROXY:
+			disposeGuiDataProxy(element->data);
+			break;
 	}
 	free(element);
 }
@@ -91,6 +108,10 @@ void drawGuiElement(GuiElement* element, SDL_Surface* surface) {
 
 		case GUI_ELEMENT_TYPE_BUTTON:
 			drawGuiElementButton(element, surface);
+			break;
+
+		case GUI_ELEMENT_TYPE_PROXY:
+			drawGuiElementProxy(element, surface);
 			break;
 	}
 
@@ -212,4 +233,24 @@ void disposeGuiDataButton(GuiDataButtonType* data) {
 void drawGuiElementButton(GuiElement* element, SDL_Surface* surface) {
 	InputButtonData* data = element->data;
 	drawString(surface, data->text, &(element->position), 1, 0);
+}
+
+//////// Proxy ////////
+
+GuiDataProxyType* createGuiDataProxy(GuiProxyData* param) {
+	GuiDataProxyType* data = malloc(sizeof(GuiDataProxyType));
+	data->proxy = param;
+	data->data = param->onCreate(param);
+	return data;
+}
+
+void disposeGuiDataProxy(GuiDataProxyType* data) {
+	data->proxy->onDispose(data->data);
+	free(data->proxy);
+	free(data);
+}
+
+void drawGuiElementProxy(GuiElement* element, SDL_Surface* surface) {
+	GuiDataProxyType* data = element->data;
+	data->proxy->onDraw(element, surface);
 }
