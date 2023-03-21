@@ -15,6 +15,7 @@ typedef struct InputField {
 	char flags;
 	char type;
 	void* data;
+	char* guiElementFlags;
 } InputField;
 
 void initInput();

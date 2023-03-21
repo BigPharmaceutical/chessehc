@@ -6,7 +6,7 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
-extern SDL_Surface* drawSurface;
+extern SDL_Surface* windowSurface;
 extern SDL_Rect* fullRect;
 
 int initGraphics();

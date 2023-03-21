@@ -5,11 +5,11 @@
 #include "content.h"
 #include <stdlib.h>
 
-LinkedList* inputFocused;
+LinkedList* inputFocused = 0;
 char inputNextid = 0;
 
-LinkedList* inputFieldsHead;
-LinkedList* inputFieldsTail;
+LinkedList* inputFieldsHead = 0;
+LinkedList* inputFieldsTail = 0;
 
 
 void initInput() {
@@ -26,13 +26,14 @@ void handleInputText(InputField* field, char key) {
 	if (key == SDLK_BACKSPACE) {
 		if (nextIndex > 0) {
 			text->chars[nextIndex - 1] = 0;
-			guiContainerInvalidate(currentContainer);
 		}
 	} else {
 		if (nextIndex < text->length) {
 			text->chars[nextIndex] = key;
-			guiContainerInvalidate(currentContainer);
 		}
+	}
+	if (field->guiElementFlags) {
+		*field->guiElementFlags |= GUI_ELEMENT_FLAG_INVALIDATED;
 	}
 }
 
@@ -78,18 +79,23 @@ void handleInput(char key) {
 		} break;
 
 		default: {
-			if (!inputFocused) {
+			InputField* focusedField = inputFocused->value;
+			if (!focusedField) {
 				break;
 			}
 
-			switch (((InputField*)inputFocused->value)->type) {
+			switch (focusedField->type) {
 				case (INPUT_TYPE_TEXT): {
-					handleInputText(inputFocused->value, key);
+					handleInputText(focusedField, key);
 				} break;
 				
 				case (INPUT_TYPE_BUTTON): {
-					handleInputButton(inputFocused->value, key);
+					handleInputButton(focusedField, key);
 				}
+			}
+
+			if (focusedField->guiElementFlags) {
+				*focusedField->guiElementFlags |= GUI_ELEMENT_FLAG_INVALIDATED;
 			}
 		} break;
 	}
@@ -108,6 +114,10 @@ InputField* createInputOfType(char flags, char type) {
 	}
 	
 	return field;
+}
+
+void inputLinkFlags(InputField* field, char* flagPtr) {
+	field->guiElementFlags = flagPtr;
 }
 
 InputField* createInputText(unsigned char length, char flags) {

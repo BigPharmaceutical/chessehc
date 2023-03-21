@@ -15,7 +15,7 @@ int initGraphics() {
 	if (!window) return 0;
 
 	windowSurface = SDL_GetWindowSurface(window);
-	drawSurface = SDL_CreateRGBSurface(0, windowSurface->w, windowSurface->h, 24, 0xFF0000, 0x00FF00, 0x0000FF, 0);
+	//drawSurface = SDL_CreateRGBSurface(0, windowSurface->w, windowSurface->h, 24, 0xFF0000, 0x00FF00, 0x0000FF, 0);
 
 	fullRect = malloc(sizeof(SDL_Rect));
 	fullRect->x = 0;
@@ -28,9 +28,10 @@ int initGraphics() {
    
 void graphicsRender() {
 	// Swap buffers and clear
-	SDL_BlitSurface(drawSurface, fullRect, windowSurface, fullRect); 
+	//SDL_BlitSurface(drawSurface, fullRect, windowSurface, fullRect); 
 	SDL_UpdateWindowSurface(window);
-	SDL_FillRect(drawSurface, 0, 0);
+	SDL_FillRect(windowSurface, 0, 0);
+	//SDL_FillRect(drawSurface, 0, 0);
 }
 
 void disposeGraphics() {

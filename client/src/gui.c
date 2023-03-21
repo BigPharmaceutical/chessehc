@@ -9,10 +9,13 @@
 typedef struct GuiDataContainerType {
 	LinkedList* children;
 	SDL_Surface* surface;
-	char invalidated;
+	short w;
+	short h;
 } GuiDataContainerType;
 GuiDataContainerType* createGuiDataContainer(SDL_Rect* param);
 void disposeGuiDataContainer(GuiDataContainerType* data);
+void drawGuiElementContainer(GuiElement* text, SDL_Surface* surface);
+SDL_Surface* guiContainerSurface(GuiElement* container);
 
 void* createGuiDataText(char* param);
 void disposeGuiDataText(void* data);
@@ -44,7 +47,7 @@ void drawGuiElementProxy(GuiElement* element, SDL_Surface* surface);
 GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) {
 	GuiElement* element = malloc(sizeof(GuiElement));
 	element->position = area;
-	element->flags = flags;
+	element->flags = flags | GUI_ELEMENT_FLAG_INVALIDATED;
 	element->type = type;
 
 	switch (type) {
@@ -56,9 +59,11 @@ GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* param) 
 			element->data = createGuiDataText(param);
 			break;
 
-		case GUI_ELEMENT_TYPE_TEXTFIELD:
-			element->data = createGuiDataTextfield((long) param);
-			break;
+		case GUI_ELEMENT_TYPE_TEXTFIELD: {
+			InputField* f = createGuiDataTextfield((long) param);
+			f->guiElementFlags = &element->flags;
+			element->data = f;
+		} break;
 		
 		case GUI_ELEMENT_TYPE_BUTTON:
 			element->data = createGuiDataButton(param);
@@ -98,6 +103,10 @@ void disposeGuiElement(GuiElement* element) {
 
 void drawGuiElement(GuiElement* element, SDL_Surface* surface) {
 	switch (element->type) {
+		case GUI_ELEMENT_TYPE_CONTAINER:
+			drawGuiElementContainer(element, surface);
+			break;
+
 		case GUI_ELEMENT_TYPE_TEXT:
 			drawGuiElementText(element, surface);
 			break;
@@ -115,6 +124,7 @@ void drawGuiElement(GuiElement* element, SDL_Surface* surface) {
 			break;
 	}
 
+	element->flags &= ~GUI_ELEMENT_FLAG_INVALIDATED;
 }
 
 //////// Container ////////
@@ -123,7 +133,9 @@ GuiDataContainerType* createGuiDataContainer(SDL_Rect* param) {
 	GuiDataContainerType* new = malloc(sizeof(GuiDataContainerType));
 	new->surface = SDL_CreateRGBSurface(0, param->w, param->h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 	new->children = 0;
-	new->invalidated = 1;
+	new->w = param->w;
+	new->h = param->h;
+	//new->invalidated = 1;
 	return new;
 }
 
@@ -132,6 +144,17 @@ void disposeGuiDataContainer(struct GuiDataContainerType* data) {
 	free(data->surface);
 	linkedListDispose(data->children);
 	free(data);
+}
+
+void drawGuiElementContainer(GuiElement* element, SDL_Surface* surface) {
+	GuiDataContainerType* data = element->data;
+	SDL_Rect source;
+	source.x = 0;
+	source.y = 0;
+	source.w = data->w;
+	source.h = data->h;
+	SDL_Surface* containerSurface = guiContainerSurface(element);	
+	SDL_BlitSurface(containerSurface, &source, surface, &element->position);	
 }
 
 void guiContainerLink(GuiElement* container, GuiElement* child) {
@@ -161,22 +184,42 @@ void guiContainerUnlink(GuiElement* container, GuiElement* child) {
 	}
 }
 
+char isElementTreeInvalidated(GuiElement* element) {
+	if (element->flags & GUI_ELEMENT_FLAG_INVALIDATED) {
+		return 1;
+	}
+	
+	if (element->type == GUI_ELEMENT_TYPE_CONTAINER) {
+		GuiDataContainerType* data = element->data;
+		LinkedList* target = data->children;
+		while (target) {
+			if (isElementTreeInvalidated(target->value)) {
+				return 1;
+			}
+			target = target->next;
+		}
+	}
+
+	return 0;
+}
+
+
 SDL_Surface* guiContainerSurface(GuiElement* container) {
 	GuiDataContainerType* data = container->data;
-	if (data->invalidated) {
+
+	if (isElementTreeInvalidated(container)) {
 		LinkedList* target = data->children;
 		while (target) {
 			drawGuiElement(target->value, data->surface);
 			target = target->next;
 		}
-		data->invalidated = 0;
 	}
 	return data->surface;
 }
 
-void guiContainerInvalidate(GuiElement* container) {
-	((GuiDataContainerType*) container->data)->invalidated = 1;
-}
+//void guiContainerInvalidate(GuiElement* container) {
+//	((GuiDataContainerType*) container->data)->invalidated = 1;
+//}
 
 //////// Text ////////
 void* createGuiDataText(char* param) {
