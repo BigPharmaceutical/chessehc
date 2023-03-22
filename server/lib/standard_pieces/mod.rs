@@ -9,10 +9,12 @@ use std::{
 use crate::{
     board::Board,
     coordinate::{Coordinate, CoordinateDelta},
-    delta::Delta,
+    delta,
     piece_set::PieceSet,
     r#move::Move,
 };
+
+pub type Delta = delta::Delta<Box<dyn StandardCompatiblePiece>>;
 
 pub trait StandardCompatiblePiece
 where
@@ -53,7 +55,7 @@ where
         r#move: &Move,
         turn: u16,
         n_players: u8,
-    ) -> Result<(Vec<Delta<Box<dyn StandardCompatiblePiece>>>, u16), Error>;
+    ) -> Result<(Vec<Delta>, u16), Error>;
 
     // Custom
     fn clone(&self) -> Box<dyn StandardCompatiblePiece>;
@@ -128,7 +130,7 @@ impl PieceSet for Box<dyn StandardCompatiblePiece> {
         r#move: &Move,
         turn: u16,
         n_players: u8,
-    ) -> Result<(Vec<Delta<Self>>, u16), Self::Error> {
+    ) -> Result<(Vec<Delta>, u16), Self::Error> {
         (**self).mid_move(board, r#move, turn, n_players)
     }
 }

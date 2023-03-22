@@ -10,6 +10,8 @@ use crate::{
 #[derive(Clone)]
 pub struct Board<Set: PieceSet>(Vec<Vec<Spot<Set>>>);
 
+pub type MovePartialDeltas<PieceId> = (Vec<PartialDelta<PieceId>>, u16);
+
 impl<Set: PieceSet> Board<Set> {
     pub fn new(width: u16, height: u16) -> Board<Set> {
         Self(vec![vec![Spot::new(); width as usize]; height as usize])
@@ -118,7 +120,8 @@ impl<Set: PieceSet> Board<Set> {
             .attacking(self, position)
             .map_err(|err| Error::PieceError(err))?
         {
-            self.get_mut(&attack)?.attack(piece.player(), *position);
+            self.get_mut(&attack)?
+                .attack(piece.player(), *position, piece.blockable());
         }
 
         Ok(())
@@ -145,13 +148,50 @@ impl<Set: PieceSet> Board<Set> {
                     return Err(Error::NoPieceAtSpot(from));
                 };
 
+                let from_blocks = self.get(&from)?.blocking_spots();
+                for block in &from_blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(*block))?;
+                    self.remove_attacks(&blocked_piece, &block)?;
+                }
+
                 self.remove_attacks(&piece, &from)?;
                 self.add_attacks(&piece, &to)?;
+
+                let to_blocks = self.get(&to)?.blocking_spots();
+                for block in &to_blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(*block))?;
+                    self.remove_attacks(&blocked_piece, &block)?;
+                }
 
                 let target = self.get_mut(&to)?.replace(piece);
                 if let Some(taken) = target {
                     return Err(Error::SpotOccupied(to, Some(taken)));
                 };
+
+                for block in from_blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(block))?;
+                    self.add_attacks(&blocked_piece, &block)?;
+                }
+                for block in to_blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(block))?;
+                    self.add_attacks(&blocked_piece, &block)?;
+                }
 
                 PartialDelta::<Set::PieceId>::Move(from, to)
             }
@@ -162,19 +202,47 @@ impl<Set: PieceSet> Board<Set> {
 
                 self.remove_attacks(&taken, &position)?;
 
+                let blocks = self.get(&position)?.blocking_spots();
+                for block in blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(block))?;
+                    self.add_attacks(&blocked_piece, &block)?;
+                }
+
                 PartialDelta::<Set::PieceId>::Delete(position)
             }
             Delta::Replace(position, new_piece) => {
                 let id = new_piece.type_id();
                 let player = new_piece.player();
 
+                let blocks = self.get(&position)?.blocking_spots();
+                for block in &blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(*block))?;
+                    self.remove_attacks(&blocked_piece, &block)?;
+                }
+
                 if let Some(taken) = self.get_mut(&position)?.take() {
                     self.remove_attacks(&taken, &position)?;
                 }
 
                 self.add_attacks(&new_piece, &position)?;
-
                 self.get_mut(&position)?.replace(new_piece);
+
+                for block in blocks {
+                    let blocked_piece = self
+                        .get(&block)?
+                        .get()
+                        .clone()
+                        .ok_or_else(|| Error::NoPieceAtSpot(block))?;
+                    self.add_attacks(&blocked_piece, &block)?;
+                }
 
                 PartialDelta::<Set::PieceId>::Replace(position, id, player)
             }
@@ -188,7 +256,7 @@ impl<Set: PieceSet> Board<Set> {
         r#move: &Move,
         turn: u16,
         n_players: u8,
-    ) -> Result<(Vec<PartialDelta<Set::PieceId>>, u16), Error<Set>> {
+    ) -> Result<MovePartialDeltas<Set::PieceId>, Error<Set>> {
         let mut piece = self
             .get_mut(&r#move.from)?
             .take()
@@ -214,7 +282,7 @@ impl<Set: PieceSet> Board<Set> {
             .map_err(|err| Error::PieceError(err))?
         {
             if let Ok(spot) = self.get_mut(&coordinate) {
-                spot.attack(r#move.player, r#move.to);
+                spot.attack(r#move.player, r#move.to, piece.blockable());
             }
         }
 

@@ -1,6 +1,6 @@
 [package]
 name = "chessehc_server"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Tom Boddaert (tomBoddaert) <chessehc@tomboddaert.com>", "BigPharmaceutical"]
 edition = "2021"
 description = "A variation of Chess on the surface of a tube; server and library"
@@ -10,9 +10,10 @@ repository = "https://github.com/BigPharmaceutical/chessehc/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-futures-util = "0.3.26"
+base64 = { version = "0.21.0", optional = true }
+futures-util = { version = "0.3.26", optional = true }
 tokio = { version = "1.26.0", features = [ "full" ], optional = true }
-tokio-tungstenite = "0.18.0"
+tokio-tungstenite = { version = "0.18.0", optional = true }
 
 [lib]
 name = "chessehc"
@@ -22,9 +23,9 @@ edition = "2021"
 crate-type = [ "lib" ]
 
 [features]
-default = ["standard_pieces"]
+default = [ "standard_pieces" ]
 standard_pieces = []
-server = ["tokio"]
+server = [ "base64", "futures-util", "tokio", "tokio-tungstenite" ]
 
 [[bin]]
 name = "chessehc_server"

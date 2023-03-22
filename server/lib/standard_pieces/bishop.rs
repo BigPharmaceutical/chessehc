@@ -109,3 +109,92 @@ impl StandardCompatiblePiece for Bishop {
         self.1 = true;
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{coordinate::Coordinate, game::Game};
+
+    use super::Bishop;
+
+    #[test]
+    fn attacking() {
+        const BISHOP_1_POSITION: Coordinate = Coordinate(2, 2);
+
+        const BISHOP_2_POSITION: Coordinate = Coordinate(1, 1);
+        const BISHOP_3_POSITION: Coordinate = Coordinate(0, 4);
+
+        let mut game = Game::new(2, 5, 5);
+
+        game.add_piece(Bishop::new(0), &BISHOP_1_POSITION);
+        game.add_piece(Bishop::new(1), &BISHOP_2_POSITION);
+        game.add_piece(Bishop::new(1), &BISHOP_3_POSITION);
+
+        let tests = [
+            [false, false, false, false, true],
+            [false, true, false, true, false],
+            [false; 5],
+            [false, true, false, true, false],
+            [true, false, false, false, true],
+        ];
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let result = game
+                    .board()
+                    .is_being_attacked(&Coordinate(x, y), 1)
+                    .unwrap();
+
+                assert!(
+                    result == expected,
+                    "test failed: {BISHOP_1_POSITION} -x ({x}, {y}), {result} ({expected})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn moves() {
+        const BISHOP_1_POSITION: Coordinate = Coordinate(2, 2);
+
+        const BISHOP_2_POSITION: Coordinate = Coordinate(1, 1);
+        const BISHOP_3_POSITION: Coordinate = Coordinate(0, 4);
+
+        let mut game = Game::new(2, 5, 5);
+        game.add_piece(Bishop::new(0), &BISHOP_1_POSITION);
+        game.add_piece(Bishop::new(1), &BISHOP_2_POSITION);
+        game.add_piece(Bishop::new(1), &BISHOP_3_POSITION);
+
+        let tests = [
+            [false, false, false, false, true],
+            [false, true, false, true, false],
+            [false; 5],
+            [false, true, false, true, false],
+            [true, false, false, false, true],
+        ];
+
+        game.generate_valid_moves()
+            .expect("failed to generate moves");
+        let valid_moves = game.valid_moves();
+
+        for (from, _, _) in valid_moves {
+            assert!(
+                from == &BISHOP_1_POSITION,
+                "test failed: {from} != {BISHOP_1_POSITION}"
+            );
+        }
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let position = Coordinate(x, y);
+
+                let result = valid_moves.iter().find(|(_, to, _)| to == &position);
+
+                assert!(
+                    matches!(result, Some(_)) == expected,
+                    "test failed: {BISHOP_1_POSITION} -x ({x}, {y}), {} ({expected})",
+                    !expected
+                );
+            }
+        }
+    }
+}

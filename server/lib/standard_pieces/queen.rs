@@ -127,3 +127,102 @@ impl StandardCompatiblePiece for Queen {
         self.1 = true;
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{coordinate::Coordinate, game::Game};
+
+    use super::Queen;
+
+    #[test]
+    fn attacking() {
+        const QUEEN_1_POSITION: Coordinate = Coordinate(2, 2);
+
+        const QUEEN_2_POSITION: Coordinate = Coordinate(1, 1);
+        const QUEEN_3_POSITION: Coordinate = Coordinate(0, 4);
+        const QUEEN_4_POSITION: Coordinate = Coordinate(2, 3);
+        const QUEEN_5_POSITION: Coordinate = Coordinate(0, 2);
+
+        let mut game = Game::new(2, 5, 5);
+
+        game.add_piece(Queen::new(0), &QUEEN_1_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_2_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_3_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_4_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_5_POSITION);
+
+        let tests = [
+            [false, false, true, false, true],
+            [false, true, true, true, false],
+            [true, true, false, true, true],
+            [false, true, true, true, false],
+            [true, false, false, false, true],
+        ];
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let result = game
+                    .board()
+                    .is_being_attacked(&Coordinate(x, y), 1)
+                    .unwrap();
+
+                assert!(
+                    result == expected,
+                    "test failed: {QUEEN_1_POSITION} -x ({x}, {y}), {result} ({expected})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn moves() {
+        const QUEEN_1_POSITION: Coordinate = Coordinate(2, 2);
+
+        const QUEEN_2_POSITION: Coordinate = Coordinate(1, 1);
+        const QUEEN_3_POSITION: Coordinate = Coordinate(0, 4);
+        const QUEEN_4_POSITION: Coordinate = Coordinate(2, 3);
+        const QUEEN_5_POSITION: Coordinate = Coordinate(0, 2);
+
+        let mut game = Game::new(2, 5, 5);
+
+        game.add_piece(Queen::new(0), &QUEEN_1_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_2_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_3_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_4_POSITION);
+        game.add_piece(Queen::new(1), &QUEEN_5_POSITION);
+
+        let tests = [
+            [false, false, true, false, true],
+            [false, true, true, true, false],
+            [true, true, false, true, true],
+            [false, true, true, true, false],
+            [true, false, false, false, true],
+        ];
+
+        game.generate_valid_moves()
+            .expect("failed to generate moves");
+        let valid_moves = game.valid_moves();
+
+        for (from, _, _) in valid_moves {
+            assert!(
+                from == &QUEEN_1_POSITION,
+                "test failed: {from} != {QUEEN_1_POSITION}"
+            );
+        }
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let position = Coordinate(x, y);
+
+                let result = valid_moves.iter().find(|(_, to, _)| to == &position);
+
+                assert!(
+                    matches!(result, Some(_)) == expected,
+                    "test failed: {QUEEN_1_POSITION} -x ({x}, {y}), {} ({expected})",
+                    !expected
+                );
+            }
+        }
+    }
+}
+

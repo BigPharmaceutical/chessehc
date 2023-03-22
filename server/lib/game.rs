@@ -1,7 +1,7 @@
 use crate::{
     board::Board,
     coordinate::Coordinate,
-    delta::PartialDelta,
+    delta::{Delta, PartialDelta},
     error::Error,
     piece_set::PieceSet,
     r#move::{Move, PartialMove},
@@ -14,6 +14,8 @@ pub struct Game<Set: PieceSet> {
     valid_moves: Vec<PartialMove>,
 }
 
+pub type AttemptedMove<Set, PieceId> = Option<(Board<Set>, Vec<PartialDelta<PieceId>>, u16)>;
+
 impl<Set: PieceSet> Game<Set> {
     pub fn new(n_players: u8, width: u16, height: u16) -> Game<Set> {
         Self {
@@ -24,18 +26,21 @@ impl<Set: PieceSet> Game<Set> {
         }
     }
 
-    pub fn add_piece(&mut self, piece: Set, position: &Coordinate) -> Result<(), Error<Set>> {
+    pub fn add_piece(
+        &mut self,
+        piece: Set,
+        position: &Coordinate,
+    ) -> Result<PartialDelta<Set::PieceId>, Error<Set>> {
         let spot = self.board.get(position)?;
         if spot.is_occupied() {
             return Err(Error::SpotOccupied(*position, Some(piece)));
         }
 
-        self.board.add_attacks(&piece, position)?;
+        let delta = Delta::Replace(*position, piece);
+        let partial_delta = self.board.perform_delta(delta)?;
 
-        let spot = self.board.get_mut(position)?;
-        spot.replace(piece);
         self.generate_valid_moves()?;
-        Ok(())
+        Ok(partial_delta)
     }
 
     pub fn generate_valid_moves(&mut self) -> Result<(), Error<Set>> {
@@ -87,7 +92,7 @@ impl<Set: PieceSet> Game<Set> {
     pub fn attempt_move(
         &self,
         r#move: &Move,
-    ) -> Result<Option<(Board<Set>, Vec<PartialDelta<Set::PieceId>>, u16)>, Error<Set>> {
+    ) -> Result<AttemptedMove<Set, Set::PieceId>, Error<Set>> {
         if r#move.player != self.turn.1 {
             return Ok(None);
         }

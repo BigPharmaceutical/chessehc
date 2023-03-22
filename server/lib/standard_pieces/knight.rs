@@ -107,3 +107,90 @@ impl StandardCompatiblePiece for Knight {
         Box::new(Clone::clone(self))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{coordinate::Coordinate, game::Game};
+
+    use super::Knight;
+
+    #[test]
+    fn attacking() {
+        const KNIGHT_1_POSITION: Coordinate = Coordinate(2, 2);
+
+        const KNIGHT_2_POSITION: Coordinate = Coordinate(1, 4);
+
+        let mut game = Game::new(2, 5, 5);
+
+        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION);
+        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION);
+
+        let tests = [
+            [false, true, false, true, false],
+            [true, false, false, false, true],
+            [false; 5],
+            [true, false, false, false, true],
+            [false, true, false, true, false],
+        ];
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let result = game
+                    .board()
+                    .is_being_attacked(&Coordinate(x, y), 1)
+                    .unwrap();
+
+                assert!(
+                    result == expected,
+                    "test failed: {KNIGHT_1_POSITION} -x ({x}, {y}), {result} ({expected})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn moves() {
+        const KNIGHT_1_POSITION: Coordinate = Coordinate(2, 2);
+
+        const KNIGHT_2_POSITION: Coordinate = Coordinate(1, 4);
+
+        let mut game = Game::new(2, 5, 5);
+
+        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION);
+        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION);
+
+        let tests = [
+            [false, true, false, true, false],
+            [true, false, false, false, true],
+            [false; 5],
+            [true, false, false, false, true],
+            [false, true, false, true, false],
+        ];
+
+        game.generate_valid_moves()
+            .expect("failed to generate moves");
+        let valid_moves = game.valid_moves();
+
+        for (from, _, _) in valid_moves {
+            assert!(
+                from == &KNIGHT_1_POSITION,
+                "test failed: {from} != {KNIGHT_1_POSITION}"
+            );
+        }
+
+        for (y, rank) in tests.iter().enumerate() {
+            for (x, &expected) in rank.iter().enumerate() {
+                let position = Coordinate(x, y);
+
+                let result = valid_moves.iter().find(|(_, to, _)| to == &position);
+
+                assert!(
+                    matches!(result, Some(_)) == expected,
+                    "test failed: {KNIGHT_1_POSITION} -x ({x}, {y}), {} ({expected})",
+                    !expected
+                );
+            }
+        }
+    }
+}
+
