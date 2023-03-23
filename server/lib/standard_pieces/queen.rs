@@ -11,8 +11,9 @@ use super::StandardCompatiblePiece;
 pub struct Queen(u8, bool);
 
 impl Queen {
+    #[must_use]
     pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
-        Box::new(Queen(player, false))
+        Box::new(Self(player, false))
     }
 }
 
@@ -145,11 +146,11 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Queen::new(0), &QUEEN_1_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_2_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_3_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_4_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_5_POSITION);
+        game.add_piece(Queen::new(0), &QUEEN_1_POSITION).expect("failed to add first queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_2_POSITION).expect("failed to add second queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_3_POSITION).expect("failed to add third queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_4_POSITION).expect("failed to add fourth queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_5_POSITION).expect("failed to add fifth queen to board");
 
         let tests = [
             [false, false, true, false, true],
@@ -185,11 +186,11 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Queen::new(0), &QUEEN_1_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_2_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_3_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_4_POSITION);
-        game.add_piece(Queen::new(1), &QUEEN_5_POSITION);
+        game.add_piece(Queen::new(0), &QUEEN_1_POSITION).expect("failed to add first queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_2_POSITION).expect("failed to add second queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_3_POSITION).expect("failed to add third queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_4_POSITION).expect("failed to add fourth queen to board");
+        game.add_piece(Queen::new(1), &QUEEN_5_POSITION).expect("failed to add fifth queen to board");
 
         let tests = [
             [false, false, true, false, true],
@@ -225,4 +226,3 @@ mod test {
         }
     }
 }
-

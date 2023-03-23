@@ -17,6 +17,7 @@ impl Display for Coordinate {
     }
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct CoordinateDelta(pub isize, pub isize);
 

@@ -3,6 +3,7 @@ use crate::{
     coordinate::{Coordinate, CoordinateDelta},
     delta::Delta,
     r#move::Move,
+    spot::Spot,
 };
 
 use super::{Bishop, Error, Knight, Queen, Rook, StandardCompatiblePiece};
@@ -17,6 +18,7 @@ pub struct Pawn {
 }
 
 impl Pawn {
+    #[must_use]
     pub fn new(player: u8, direction: i8, upgrade_rank: usize) -> Box<dyn StandardCompatiblePiece> {
         Box::new(Self {
             player,
@@ -100,11 +102,11 @@ impl StandardCompatiblePiece for Pawn {
         'attack_positions: for dx in [-1, 1] {
             let Some(position) = from + (&CoordinateDelta(dx, self.direction as isize), board) else { continue };
 
-            let Ok(Some(piece)) = board.get(&position).map(|spot| spot.get()) else {
+            let Ok(Some(piece)) = board.get(&position).map(Spot::get) else {
                 // En Passant
                 for ldy in [-1, 1] {
                     let Some(ep_position) = &position + (&CoordinateDelta(0, ldy), board) else { continue };
-                    let Ok(Some(ep_piece)) = board.get(&ep_position).map(|spot| spot.get()) else { continue };
+                    let Ok(Some(ep_piece)) = board.get(&ep_position).map(Spot::get) else { continue };
 
                     if ep_piece.player() != self.player && ep_piece.can_en_passant(&position, turn, n_players) {
                         moves.push((position, 0));
@@ -166,7 +168,7 @@ impl StandardCompatiblePiece for Pawn {
                 (&r#move.from + (&CoordinateDelta(0, self.direction.into()), board))
                     .expect("failed to add 1 to y in coordinate"),
                 turn,
-            ))
+            ));
         }
 
         let mut deltas = Vec::new();
@@ -176,7 +178,7 @@ impl StandardCompatiblePiece for Pawn {
         for ldy in [-1, 1] {
             let Some(ep_position) =
                 &r#move.to + (&CoordinateDelta(0, self.direction as isize + ldy), board) else { continue };
-            let Ok(Some(ep_piece)) = board.get(&ep_position).map(|spot| spot.get()) else { continue };
+            let Ok(Some(ep_piece)) = board.get(&ep_position).map(Spot::get) else { continue };
 
             let Some(ep_points) = ep_piece.capture_points() else { continue };
             if ep_piece.player() != self.player

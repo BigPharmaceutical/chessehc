@@ -12,6 +12,7 @@ use super::{Error, StandardCompatiblePiece};
 pub struct King(u8, bool);
 
 impl King {
+    #[must_use]
     pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
         Box::new(Self(player, false))
     }
@@ -274,7 +275,7 @@ mod test {
         const PAWN_POSITION: Coordinate = Coordinate(4, 2);
         const ROOK_POSITION: Coordinate = Coordinate(5, 2);
 
-        let is_castle_move = |&(from, to, data): &&(Coordinate, Coordinate, u8)| {
+        let is_castle_move = |(from, to, data): &(Coordinate, Coordinate, u8)| {
             from == &KING_POSITION && to == &PAWN_POSITION && *data == 0
         };
 
@@ -289,7 +290,7 @@ mod test {
         game.generate_valid_moves().unwrap();
         let valid_moves = game.valid_moves();
         assert!(
-            valid_moves.iter().find(is_castle_move).is_none(),
+            !valid_moves.iter().any(is_castle_move),
             "test failed: {KING_POSITION} -> {PAWN_POSITION}, true (false)"
         );
 
@@ -305,7 +306,7 @@ mod test {
 
         let valid_moves = game.valid_moves();
         assert!(
-            valid_moves.iter().find(is_castle_move).is_some(),
+            valid_moves.iter().any(is_castle_move),
             "test failed: {KING_POSITION} -> {PAWN_POSITION}, false (true)"
         );
 
@@ -333,7 +334,7 @@ mod test {
                     .unwrap()
                     .get()
                     .as_ref()
-                    .map(|piece| piece.type_id());
+                    .map(PieceSet::type_id);
 
                 assert!(
                     result == expected,

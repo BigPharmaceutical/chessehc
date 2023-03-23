@@ -13,19 +13,19 @@ pub struct Board<Set: PieceSet>(Vec<Vec<Spot<Set>>>);
 pub type MovePartialDeltas<PieceId> = (Vec<PartialDelta<PieceId>>, u16);
 
 impl<Set: PieceSet> Board<Set> {
-    pub fn new(width: u16, height: u16) -> Board<Set> {
+    #[must_use]
+    pub fn new(width: u16, height: u16) -> Self {
         Self(vec![vec![Spot::new(); width as usize]; height as usize])
     }
 
+    #[must_use]
     pub fn height(&self) -> usize {
         self.0.len()
     }
 
+    #[must_use]
     pub fn width(&self) -> usize {
-        match self.0.get(0) {
-            Some(rank) => rank.len(),
-            None => 0,
-        }
+        self.0.get(0).map_or(0, Vec::len)
     }
 
     pub fn get(&self, coordinate: &Coordinate) -> Result<&Spot<Set>, Error<Set>> {
@@ -54,7 +54,8 @@ impl<Set: PieceSet> Board<Set> {
             .ok_or(Error::CoordinateNotOnBoard(*coordinate, width, height))
     }
 
-    pub fn raw(&self) -> &Vec<Vec<Spot<Set>>> {
+    #[must_use]
+    pub const fn raw(&self) -> &Vec<Vec<Spot<Set>>> {
         &self.0
     }
 
@@ -151,11 +152,11 @@ impl<Set: PieceSet> Board<Set> {
                 let from_blocks = self.get(&from)?.blocking_spots();
                 for block in &from_blocks {
                     let blocked_piece = self
-                        .get(&block)?
+                        .get(block)?
                         .get()
                         .clone()
                         .ok_or_else(|| Error::NoPieceAtSpot(*block))?;
-                    self.remove_attacks(&blocked_piece, &block)?;
+                    self.remove_attacks(&blocked_piece, block)?;
                 }
 
                 self.remove_attacks(&piece, &from)?;
@@ -164,11 +165,11 @@ impl<Set: PieceSet> Board<Set> {
                 let to_blocks = self.get(&to)?.blocking_spots();
                 for block in &to_blocks {
                     let blocked_piece = self
-                        .get(&block)?
+                        .get(block)?
                         .get()
                         .clone()
                         .ok_or_else(|| Error::NoPieceAtSpot(*block))?;
-                    self.remove_attacks(&blocked_piece, &block)?;
+                    self.remove_attacks(&blocked_piece, block)?;
                 }
 
                 let target = self.get_mut(&to)?.replace(piece);
@@ -221,11 +222,11 @@ impl<Set: PieceSet> Board<Set> {
                 let blocks = self.get(&position)?.blocking_spots();
                 for block in &blocks {
                     let blocked_piece = self
-                        .get(&block)?
+                        .get(block)?
                         .get()
                         .clone()
                         .ok_or_else(|| Error::NoPieceAtSpot(*block))?;
-                    self.remove_attacks(&blocked_piece, &block)?;
+                    self.remove_attacks(&blocked_piece, block)?;
                 }
 
                 if let Some(taken) = self.get_mut(&position)?.take() {

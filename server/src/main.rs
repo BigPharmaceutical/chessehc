@@ -1,3 +1,11 @@
+#![warn(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::perf,
+    clippy::cargo
+)]
+
 mod server;
 
 #[tokio::main]

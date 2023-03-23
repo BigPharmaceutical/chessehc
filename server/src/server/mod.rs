@@ -3,11 +3,13 @@ use std::error::Error;
 use tokio::net::TcpListener;
 
 mod handler;
+mod request;
+mod response;
 
 pub async fn main(address: &str) -> Result<(), Box<dyn Error>> {
     // Create TCP listener
     let listener = TcpListener::bind(address).await?;
-    println!("Listening on: {}", address);
+    println!("Listening on: {address}");
 
     loop {
         // Wait for inbound socket

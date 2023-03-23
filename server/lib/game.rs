@@ -17,7 +17,8 @@ pub struct Game<Set: PieceSet> {
 pub type AttemptedMove<Set, PieceId> = Option<(Board<Set>, Vec<PartialDelta<PieceId>>, u16)>;
 
 impl<Set: PieceSet> Game<Set> {
-    pub fn new(n_players: u8, width: u16, height: u16) -> Game<Set> {
+    #[must_use]
+    pub fn new(n_players: u8, width: u16, height: u16) -> Self {
         Self {
             players: vec![(true, 0); n_players as usize],
             board: Board::new(width, height),
@@ -85,7 +86,8 @@ impl<Set: PieceSet> Game<Set> {
         Ok(())
     }
 
-    pub fn valid_moves(&self) -> &Vec<PartialMove> {
+    #[must_use]
+    pub const fn valid_moves(&self) -> &Vec<PartialMove> {
         &self.valid_moves
     }
 
@@ -187,7 +189,8 @@ impl<Set: PieceSet> Game<Set> {
         Ok(partial_deltas)
     }
 
-    pub fn board(&self) -> &Board<Set> {
+    #[must_use]
+    pub const fn board(&self) -> &Board<Set> {
         &self.board
     }
 

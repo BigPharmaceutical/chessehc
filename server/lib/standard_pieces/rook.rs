@@ -11,8 +11,9 @@ use super::StandardCompatiblePiece;
 pub struct Rook(u8, bool);
 
 impl Rook {
+    #[must_use]
     pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
-        Box::new(Rook(player, false))
+        Box::new(Self(player, false))
     }
 }
 
@@ -125,9 +126,9 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Rook::new(0), &ROOK_1_POSITION);
-        game.add_piece(Rook::new(1), &ROOK_2_POSITION);
-        game.add_piece(Rook::new(1), &ROOK_3_POSITION);
+        game.add_piece(Rook::new(0), &ROOK_1_POSITION).expect("failed to add first rook to board");
+        game.add_piece(Rook::new(1), &ROOK_2_POSITION).expect("failed to add second rook to board");
+        game.add_piece(Rook::new(1), &ROOK_3_POSITION).expect("failed to add third rook to board");
 
         let tests = [
             [false, false, true, false, false],
@@ -161,9 +162,9 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Rook::new(0), &ROOK_1_POSITION);
-        game.add_piece(Rook::new(1), &ROOK_2_POSITION);
-        game.add_piece(Rook::new(1), &ROOK_3_POSITION);
+        game.add_piece(Rook::new(0), &ROOK_1_POSITION).expect("failed to add first rook to board");
+        game.add_piece(Rook::new(1), &ROOK_2_POSITION).expect("failed to add second rook to board");
+        game.add_piece(Rook::new(1), &ROOK_3_POSITION).expect("failed to add third rook to board");
 
         let tests = [
             [false, false, true, false, false],

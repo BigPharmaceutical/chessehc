@@ -8,8 +8,10 @@ pub struct Move {
     pub player: u8,
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub type PartialMove = (Coordinate, Coordinate, u8);
 
+#[must_use]
 pub fn partial_move_eq(lhs: &PartialMove, rhs: &PartialMove) -> bool {
     lhs.0 == rhs.0 && lhs.1 == rhs.1 && lhs.2 == rhs.2
 }

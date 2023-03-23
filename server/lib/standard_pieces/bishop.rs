@@ -11,8 +11,9 @@ use super::StandardCompatiblePiece;
 pub struct Bishop(u8, bool);
 
 impl Bishop {
+    #[must_use]
     pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
-        Box::new(Bishop(player, false))
+        Box::new(Self(player, false))
     }
 }
 
@@ -125,9 +126,9 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Bishop::new(0), &BISHOP_1_POSITION);
-        game.add_piece(Bishop::new(1), &BISHOP_2_POSITION);
-        game.add_piece(Bishop::new(1), &BISHOP_3_POSITION);
+        game.add_piece(Bishop::new(0), &BISHOP_1_POSITION).expect("failed to add first bishop to board");
+        game.add_piece(Bishop::new(1), &BISHOP_2_POSITION).expect("failed to add second bishop to board");
+        game.add_piece(Bishop::new(1), &BISHOP_3_POSITION).expect("failed to add third bishop to board");
 
         let tests = [
             [false, false, false, false, true],
@@ -160,9 +161,10 @@ mod test {
         const BISHOP_3_POSITION: Coordinate = Coordinate(0, 4);
 
         let mut game = Game::new(2, 5, 5);
-        game.add_piece(Bishop::new(0), &BISHOP_1_POSITION);
-        game.add_piece(Bishop::new(1), &BISHOP_2_POSITION);
-        game.add_piece(Bishop::new(1), &BISHOP_3_POSITION);
+
+        game.add_piece(Bishop::new(0), &BISHOP_1_POSITION).expect("failed to add first bishop to board");
+        game.add_piece(Bishop::new(1), &BISHOP_2_POSITION).expect("failed to add second bishop to board");
+        game.add_piece(Bishop::new(1), &BISHOP_3_POSITION).expect("failed to add third bishop to board");
 
         let tests = [
             [false, false, false, false, true],

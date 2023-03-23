@@ -1,4 +1,4 @@
-use crate::{board::Board, coordinate::Coordinate};
+use crate::coordinate::Coordinate;
 
 #[derive(Clone, Default)]
 pub struct Spot<Set> {
@@ -23,7 +23,7 @@ impl<Set> Spot<Set> {
     }
 
     #[must_use]
-    pub fn get(&self) -> &Option<Set> {
+    pub const fn get(&self) -> &Option<Set> {
         &self.piece
     }
 

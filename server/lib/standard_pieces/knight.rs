@@ -11,6 +11,7 @@ use super::{Error, StandardCompatiblePiece};
 pub struct Knight(u8);
 
 impl Knight {
+    #[must_use]
     pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
         Box::new(Self(player))
     }
@@ -63,28 +64,29 @@ impl StandardCompatiblePiece for Knight {
 
         for dir in [(-1, -1), (-1, 1), (1, -1), (1, 1)] {
             if let Some(position) = from + (&CoordinateDelta(dir.0 * 2, dir.1), board) {
-                if if let Some(piece) = board
+                if board
                     .get(&position)
                     .map_err(|err| Error::BoardError(Box::new(err)))?
                     .get()
+                    .as_ref()
+                    .map_or(true, |piece| {
+                        piece.player() != self.0 && piece.capture_points().is_some()
+                    })
                 {
-                    piece.player() != self.0 && piece.capture_points().is_some()
-                } else {
-                    true
-                } {
                     moves.push((position, 0));
                 }
             }
+
             if let Some(position) = from + (&CoordinateDelta(dir.0, dir.1 * 2), board) {
-                if if let Some(piece) = board
+                if board
                     .get(&position)
                     .map_err(|err| Error::BoardError(Box::new(err)))?
                     .get()
+                    .as_ref()
+                    .map_or(true, |piece| {
+                        piece.player() != self.0 && piece.capture_points().is_some()
+                    })
                 {
-                    piece.player() != self.0 && piece.capture_points().is_some()
-                } else {
-                    true
-                } {
                     moves.push((position, 0));
                 }
             }
@@ -122,8 +124,8 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION);
-        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION);
+        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION).expect("failed to add first knight to board");
+        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION).expect("failed to add first second to board");
 
         let tests = [
             [false, true, false, true, false],
@@ -156,8 +158,8 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION);
-        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION);
+        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION).expect("failed to add first knight to board");
+        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION).expect("failed to add first second to board");
 
         let tests = [
             [false, true, false, true, false],
@@ -193,4 +195,3 @@ mod test {
         }
     }
 }
-
