@@ -283,17 +283,23 @@ void drawGuiElementButton(GuiElement* element, SDL_Surface* surface) {
 GuiDataProxyType* createGuiDataProxy(GuiProxyData* param) {
 	GuiDataProxyType* data = malloc(sizeof(GuiDataProxyType));
 	data->proxy = param;
-	data->data = param->onCreate(param);
+	if (param->onCreate) {
+		data->data = param->onCreate(param);
+	}
 	return data;
 }
 
 void disposeGuiDataProxy(GuiDataProxyType* data) {
-	data->proxy->onDispose(data->data);
+	if (data->proxy->onDispose) {
+		data->proxy->onDispose(data->data);
+	}
 	free(data->proxy);
 	free(data);
 }
 
 void drawGuiElementProxy(GuiElement* element, SDL_Surface* surface) {
 	GuiDataProxyType* data = element->data;
-	data->proxy->onDraw(element, surface);
+	if (data->proxy->onDraw) {
+		data->proxy->onDraw(element, surface);
+	}
 }

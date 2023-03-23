@@ -1,6 +1,8 @@
 #include "content.h"
 #include "graphics.h"
 #include "input.h"
+#include "game.h"
+
 
 GuiElement* currentContainer;
 
@@ -34,6 +36,9 @@ void initContent() {
 	guiContainerLink(a, d);
 	guiContainerLink(a, e);
 	
+	ChessGame* game = createGame(4);
+	gameContainerLink(a, game);	
+
 	currentContainer = a;
 }
 
