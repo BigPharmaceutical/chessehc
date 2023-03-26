@@ -36,7 +36,7 @@ void initContent() {
 	guiContainerLink(a, d);
 	guiContainerLink(a, e);
 	
-	ChessGame* game = createGame(4);
+	ChessGame* game = createGame();
 	gameContainerLink(a, game);	
 
 	currentContainer = a;

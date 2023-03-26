@@ -12,17 +12,18 @@ typedef struct ChessGamePlayer {
 	char* name;
 	char status;
 	struct ChessGame* chessGame;
-	char color;
+	int color;
 } ChessGamePlayer;
 
 typedef struct ChessGame {
 	LinkedList* players;
 	GuiElement* guiProxy;
+	ChessBoard* board;
 } ChessGame;
 
 void initGame();
 
-ChessGame* createGame(short numPlayers);
+ChessGame* createGame();
 void disposeGame(ChessGame* game);
 
 ChessGamePlayer* createChessGamePlayer(char* name, ChessGame* game);

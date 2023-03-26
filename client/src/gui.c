@@ -1,17 +1,10 @@
 #include "gui.h"
-#include "util.h"
 #include "font.h"
 #include "input.h"
 #include "graphics.h"
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
-typedef struct GuiDataContainerType {
-	LinkedList* children;
-	SDL_Surface* surface;
-	short w;
-	short h;
-} GuiDataContainerType;
 GuiDataContainerType* createGuiDataContainer(SDL_Rect* param);
 void disposeGuiDataContainer(GuiDataContainerType* data);
 void drawGuiElementContainer(GuiElement* text, SDL_Surface* surface);
@@ -25,18 +18,10 @@ void* createGuiDataTextfield(char param);
 void disposeGuiDataTextfield(void* data);
 void drawGuiElementTextfield(GuiElement* text, SDL_Surface* surface);
 
-typedef struct GuiDataButtonType {
-	char* text;
-	InputField* inputField;
-} GuiDataButtonType;
 GuiDataButtonType* createGuiDataButton(InputButtonData* param);
 void disposeGuiDataButton(GuiDataButtonType* data);
 void drawGuiElementButton(GuiElement* element, SDL_Surface* surface);
 
-typedef struct GuiDataProxyType {
-	GuiProxyData* proxy;
-	void* data;
-} GuiDataProxyType;
 GuiDataProxyType* createGuiDataProxy(GuiProxyData* param);
 void disposeGuiDataProxy(GuiDataProxyType* data);
 void drawGuiElementProxy(GuiElement* element, SDL_Surface* surface);

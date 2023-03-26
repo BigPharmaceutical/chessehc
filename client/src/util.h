@@ -16,4 +16,6 @@ void* linkedListRemove(LinkedList* parent);
 
 void linkedListDispose(LinkedList* list);
 
+unsigned int linkedListLength(LinkedList* list);
+
 #endif

@@ -49,3 +49,12 @@ void linkedListDispose(LinkedList* list) {
 		list = next;
 	}
 }
+
+unsigned int linkedListLength(LinkedList* list) {
+	unsigned int result = 0;
+	while (list) {
+		list = list->next;
+		result++;
+	}
+	return result;
+}

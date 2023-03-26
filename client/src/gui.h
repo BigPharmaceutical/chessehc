@@ -3,6 +3,7 @@
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_surface.h>
 #include "input.h"
+#include "util.h"
 
 #define GUI_ELEMENT_FLAG_INVALIDATED 1
 
@@ -34,6 +35,24 @@ typedef struct GuiProxyData {
 	void (*onDispose)(struct GuiProxyData*);
 	void (*onDraw)(GuiElement*, SDL_Surface*); 
 } GuiProxyData;
+
+
+typedef struct GuiDataContainerType {
+	LinkedList* children;
+	SDL_Surface* surface;
+	short w;
+	short h;
+} GuiDataContainerType;
+
+typedef struct GuiDataButtonType {
+	char* text;
+	InputField* inputField;
+} GuiDataButtonType;
+
+typedef struct GuiDataProxyType {
+	GuiProxyData* proxy;
+	void* data;
+} GuiDataProxyType;
 
 GuiElement* createGuiElement(SDL_Rect position, char flags,  char type, void* data);
 
