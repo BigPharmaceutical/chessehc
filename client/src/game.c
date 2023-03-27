@@ -1,6 +1,7 @@
 #include "game.h"
 #include "graphics.h"
 #include "gui.h"
+#include "input.h"
 
 void initGame() {
 
@@ -26,7 +27,8 @@ ChessGame* createGame() {
 	proxyData->onDraw = &gameGuiDraw;
 	game->guiProxy = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_PROXY, proxyData);
 	((GuiDataProxyType*) game->guiProxy->data)->data = game;
-
+	game->board->inputField->guiElementFlags = &game->guiProxy->flags;
+	
 	return game;
 }
 

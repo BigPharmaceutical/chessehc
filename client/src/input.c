@@ -45,6 +45,11 @@ void handleInputButton(InputField* field, char key) {
 	(*func)(field);
 }
 
+void handleInputProxy(InputField* field, char key) {
+	InputProxyData* pData = field->data;
+	pData->onKeyPress(field, key);
+}
+
 void handleInput(char key) {
 	switch (key) {
 		case (SDLK_TAB): {
@@ -91,7 +96,11 @@ void handleInput(char key) {
 				
 				case (INPUT_TYPE_BUTTON): {
 					handleInputButton(focusedField, key);
-				}
+				} break;
+
+				case (INPUT_TYPE_PROXY): {
+					handleInputProxy(focusedField, key);
+				} break;
 			}
 
 			if (focusedField->guiElementFlags) {
@@ -136,7 +145,24 @@ InputField* createInputButton(void (*onPress)(InputField*), char flags) {
 	return field;
 }
 
-void disposeOneInput(InputField* target) {
+
+InputField* createInputProxy(void (*onKeyPress)(InputField* field, char key), void (*onDispose)(InputField* field), void* data, char flags) {
+	InputField* field = createInputOfType(flags, INPUT_TYPE_PROXY);
+	InputProxyData* pData = malloc(sizeof(InputProxyData));
+	pData->onKeyPress = onKeyPress;
+	pData->onDispose = onDispose;
+	pData->data = data;
+	field->data = pData;
+	return field;
+}	
+
+
+void disposeInputProxy(InputField* target) {
+	InputProxyData* pData = target->data;
+	pData->onDispose(target);
+}
+
+void disposeInputField(InputField* target) {
 	switch (target->type) {
 		case (INPUT_TYPE_TEXT): {
 			InputTextfieldData* data = target->data;
@@ -147,20 +173,70 @@ void disposeOneInput(InputField* target) {
 		case (INPUT_TYPE_BUTTON): {	
 		} break;
 
-	}
-	if (inputFieldsHead->value == target) {
-		inputFieldsHead = inputFieldsHead->next;
+		case (INPUT_TYPE_PROXY): {
+			disposeInputProxy(target);
+		} break;
+
 	}
 
 	inputFocused = inputFieldsHead;
 	free(target);
 }
 
+void disposeOneInput(LinkedList* target) {
+	if (inputFieldsHead == target) {
+		// Don't need to change parent of first element
+		inputFieldsHead = inputFieldsHead->next;
+		if (!inputFieldsHead) {
+			inputFieldsTail = 0;
+		}
+	} else {
+		// We do for further ones though
+		LinkedList* search = inputFieldsHead;
+		while (search && search->next != target) {
+			search = search->next;
+		}
+		if (search) {
+			search->next = target->next;
+			if (!target->next) {
+				inputFieldsTail = search;
+			}
+		}
+	}
+	disposeInputField(target->value);
+	free(target);
+}
+
+void disposeOneInputByField(InputField* field) {
+	LinkedList* targetEntry;
+	if (inputFieldsHead && inputFieldsHead->value == field) {
+		targetEntry = inputFieldsHead;
+		inputFieldsHead = targetEntry->next;
+		if (!inputFieldsHead) {
+			inputFieldsTail = 0;
+		}
+	} else {
+		LinkedList* search = inputFieldsHead;
+		while (search && search->next->value != field) {
+			search = search -> next;
+		}
+		if (search) {
+			targetEntry = search->next;
+			search->next = targetEntry->next;
+			if (!targetEntry->next) {
+				inputFieldsTail = search;
+			}
+		}
+	}
+	free(targetEntry);
+	disposeInputField(field);
+}
+
 void disposeInput() {
 	LinkedList* target = inputFieldsHead;
 	while (target) {
 		LinkedList* next = target->next;
-		disposeOneInput(target->value);
+		disposeInputField(target->value);
 		free(target);
 		target = next;
 	}

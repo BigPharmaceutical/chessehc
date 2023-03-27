@@ -9,8 +9,8 @@ typedef struct ChessBoardRow {
 
 typedef struct ChessBoard {
 	short height;
-	GuiElement* guiElement;
 	ChessBoardRow* rows;
+	InputField* inputField;
 } ChessBoard;
 
 void initChess();

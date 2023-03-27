@@ -231,7 +231,7 @@ void* createGuiDataTextfield(char param) {
 }
 
 void disposeGuiDataTextfield(void* data) {
-	disposeOneInput(data);
+	disposeOneInputByField(data);
 }
 
 void drawGuiElementTextfield(GuiElement* element, SDL_Surface* surface) {
@@ -254,7 +254,7 @@ GuiDataButtonType* createGuiDataButton(InputButtonData* param) {
 }
 
 void disposeGuiDataButton(GuiDataButtonType* data) {
-	disposeOneInput(data->inputField);
+	disposeOneInputByField(data->inputField);
 	free(data);
 }
 
