@@ -13,7 +13,7 @@ void gameGuiDispose(GuiProxyData* data) {
 
 void gameGuiDraw(GuiElement* element, SDL_Surface* surface) {	
 	ChessGame* game = ((GuiDataProxyType*) element->data)->data;
-	drawChessBoard(game->board, surface, 0);
+	drawChessBoard(game->board, surface);
 }	
 
 ChessGame* createGame() {

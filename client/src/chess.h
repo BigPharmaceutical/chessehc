@@ -17,7 +17,7 @@ void initChess();
 
 ChessBoard* createChessBoard(short height);
 
-void drawChessBoard(ChessBoard* board, SDL_Surface* surface, int bottomPosition);
+void drawChessBoard(ChessBoard* board, SDL_Surface* surface);
 
 void disposeChessBoard(ChessBoard* board);
 
