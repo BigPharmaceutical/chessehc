@@ -14,20 +14,27 @@ pub type MovePartialDeltas<PieceId> = (Vec<PartialDelta<PieceId>>, u16);
 
 impl<Set: PieceSet> Board<Set> {
     #[must_use]
+    /// Create a new board
     pub fn new(width: u16, height: u16) -> Self {
         Self(vec![vec![Spot::new(); width as usize]; height as usize])
     }
 
     #[must_use]
+    /// Get the board's height
     pub fn height(&self) -> usize {
         self.0.len()
     }
 
     #[must_use]
+    /// Get the board's width
     pub fn width(&self) -> usize {
         self.0.get(0).map_or(0, Vec::len)
     }
 
+    /// Get a spot on the board
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - `coordinate` is not on the board
     pub fn get(&self, coordinate: &Coordinate) -> Result<&Spot<Set>, Error<Set>> {
         self.0
             .get(coordinate.1)
@@ -44,6 +51,10 @@ impl<Set: PieceSet> Board<Set> {
             ))
     }
 
+    /// Mutably get a spot on the board
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - `coordinate` is not on the board
     pub fn get_mut(&mut self, coordinate: &Coordinate) -> Result<&mut Spot<Set>, Error<Set>> {
         let (width, height) = (self.width(), self.height());
 
@@ -59,6 +70,10 @@ impl<Set: PieceSet> Board<Set> {
         &self.0
     }
 
+    /// Check if a piece at a spot is being attacked
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - `coordinate` is not on the board
     pub fn is_being_attacked(
         &self,
         coordinate: &Coordinate,
@@ -68,6 +83,10 @@ impl<Set: PieceSet> Board<Set> {
             .map(|spot| spot.is_being_attacked(player))
     }
 
+    /// Check if a player is in check
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn is_player_in_check(&self, player: u8) -> Result<bool, Error<Set>> {
         // For each spot on the board
         for (y, rank) in self.0.iter().enumerate() {
@@ -91,6 +110,10 @@ impl<Set: PieceSet> Board<Set> {
         Ok(false)
     }
 
+    /// Get the players in check
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn players_in_check(&self) -> Result<Vec<u8>, Error<Set>> {
         let mut in_check = Vec::new();
 
@@ -116,6 +139,11 @@ impl<Set: PieceSet> Board<Set> {
         Ok(in_check)
     }
 
+    /// Add the attacks from a piece to the board
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::PieceError`] - An error from `piece`
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - `piece` tried to attack a coordinate not on the board
     pub fn add_attacks(&mut self, piece: &Set, position: &Coordinate) -> Result<(), Error<Set>> {
         for attack in piece
             .attacking(self, position)
@@ -128,6 +156,11 @@ impl<Set: PieceSet> Board<Set> {
         Ok(())
     }
 
+    /// Remove the attacks from a piece on the board
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::PieceError`] - An error from `piece`
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - `piece` tried to attack a coordinate not on the board
     pub fn remove_attacks(&mut self, piece: &Set, position: &Coordinate) -> Result<(), Error<Set>> {
         for attack in piece
             .attacking(self, position)
@@ -139,6 +172,13 @@ impl<Set: PieceSet> Board<Set> {
         Ok(())
     }
 
+    /// Perform a delta on the board
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in the `delta` is not on the board
+    /// - [`Error<Set>::NoPieceAtSpot`] - A coordinate in the `delta` which should contain a piece does not
+    /// - [`Error<Set>::SpotOccupied`] - A coordinate in the `delta` which should not contain a piece does
+    /// - [`Error<Set>::PieceError`] - Error from a piece
     pub fn perform_delta(
         &mut self,
         delta: Delta<Set>,
@@ -252,6 +292,14 @@ impl<Set: PieceSet> Board<Set> {
 
     /// Attempts to make the move, assuming it has already
     /// been validated and returns the points gained
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::NoPieceAtSpot`] - There is no piece at `move.to`
+    /// - [`Error<Set>::PieceError`] - Error from a piece
+    /// - [`Error<Set>::PieceOwnedByWrongPlayer`] - The current player does not own the piece to move
+    /// - [`Error<Set>::PieceNotCapturable`] - The piece attempting to be captured is not capturable
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in a `delta` produced by the piece is not on the board
+    /// - [`Error<Set>::SpotOccupied`] - A coordinate in a `delta` produced by the piece which should not contain a piece does
     pub fn make_move(
         &mut self,
         r#move: &Move,
@@ -307,6 +355,7 @@ impl<Set: PieceSet> Board<Set> {
         Ok((partial_deltas, points))
     }
 
+    /// Remove a piece from the board
     pub fn remove_player(&mut self, player: u8) -> Vec<PartialDelta<Set::PieceId>> {
         let mut partial_moves = Vec::new();
 

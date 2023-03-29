@@ -27,6 +27,12 @@ impl<Set: PieceSet> Game<Set> {
         }
     }
 
+    /// Add a piece to the board
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - `position` is not on the board
+    /// - [`Error<Set>::SpotOccupied`] - A piece is already in the `position`
+    /// - [`Error<Set>::PieceError`] - Error from a piece
     pub fn add_piece(
         &mut self,
         piece: Set,
@@ -44,6 +50,10 @@ impl<Set: PieceSet> Game<Set> {
         Ok(partial_delta)
     }
 
+    /// Generate the valid moves for the current player
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::PieceError`] - Error from a piece
     pub fn generate_valid_moves(&mut self) -> Result<(), Error<Set>> {
         self.valid_moves = Vec::new();
 
@@ -87,10 +97,18 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     #[must_use]
+    /// Get the valid moves for the current player
     pub const fn valid_moves(&self) -> &Vec<PartialMove> {
         &self.valid_moves
     }
 
+    /// Attempt a move on the board
+    /// 
+    /// Returns an option with the board and partial moves if the move can be made
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in `move` is not on the board
+    /// - [`Error<Set>::PieceError`] - Error from a piece
     pub fn attempt_move(
         &self,
         r#move: &Move,
@@ -118,6 +136,7 @@ impl<Set: PieceSet> Game<Set> {
         Ok(Some((new_state, partial_deltas, points)))
     }
 
+    /// Increment turn and select the next player
     pub fn increment_turn(&mut self) {
         let players_n =
             u8::try_from(self.players.len()).expect("exceeded maximum number of players in game");
@@ -137,6 +156,11 @@ impl<Set: PieceSet> Game<Set> {
         }
     }
 
+    /// Start the next turn by incrementing turn,
+    /// checking for check and generating the valid moves
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn start_turn(&mut self) -> Result<Vec<PartialDelta<Set::PieceId>>, Error<Set>> {
         self.increment_turn();
 
@@ -171,6 +195,11 @@ impl<Set: PieceSet> Game<Set> {
         Ok(partial_deltas)
     }
 
+    /// Make a move
+    /// 
+    /// # Errors
+    /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in `move` is not on the board
+    /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn make_move(
         &mut self,
         r#move: &Move,
@@ -190,11 +219,16 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     #[must_use]
+    /// Get the board
     pub const fn board(&self) -> &Board<Set> {
         &self.board
     }
 
+    /// Remove a player from the game
     pub fn remove_player(&mut self, player: u8) -> Vec<PartialDelta<Set::PieceId>> {
+        self.increment_turn();
+        self.turn.0 -= 1;
+
         self.board.remove_player(player)
     }
 }
