@@ -5,21 +5,21 @@
 #include "content.h"
 #include <stdlib.h>
 
-LinkedList* inputFocused = 0;
+struct LinkedList* inputFocused = 0;
 char inputNextid = 0;
 
-LinkedList* inputFieldsHead = 0;
-LinkedList* inputFieldsTail = 0;
+struct LinkedList* inputFieldsHead = 0;
+struct LinkedList* inputFieldsTail = 0;
 
 
 void initInput() {
 }
-void handleInputSelected(InputField* field) {
+void handleInputSelected(struct InputField* field) {
 }
 
-void handleInputText(InputField* field, char key) {
-	InputTextfieldData* text = field->data;
-	char nextIndex = 0;
+void handleInputText(struct InputField* field, char key) {
+	struct InputTextfieldData* text = field->data;
+	unsigned char nextIndex = 0;
 	while (text->chars[nextIndex]) {
 		nextIndex++;
 	}
@@ -37,23 +37,23 @@ void handleInputText(InputField* field, char key) {
 	}
 }
 
-void handleInputButton(InputField* field, char key) {
+void handleInputButton(struct InputField* field, char key) {
 	if (key != SDLK_SPACE && key != SDLK_RETURN) {
 		return;
 	}
-	void (*func)(InputField*) = field->data;
+	void (*func)(struct InputField*) = field->data;
 	(*func)(field);
 }
 
-void handleInputProxy(InputField* field, char key) {
-	InputProxyData* pData = field->data;
+void handleInputProxy(struct InputField* field, char key) {
+	struct InputProxyData* pData = field->data;
 	pData->onKeyPress(field, key);
 }
 
 void handleInput(char key) {
 	switch (key) {
 		case (SDLK_TAB): {
-			LinkedList* dest;
+			struct LinkedList* dest;
  			if (!inputFocused) {
 				if (inputFieldsHead) {
 					dest = inputFieldsHead;
@@ -70,7 +70,7 @@ void handleInput(char key) {
 						break;
 					}
 				}
-				if (((InputField*)dest->value)->flags & INPUT_FLAGS_SELECTABLE) {
+				if (((struct InputField*)dest->value)->flags & INPUT_FLAGS_SELECTABLE) {
 					break;
 				}
 				dest = dest->next;
@@ -84,7 +84,7 @@ void handleInput(char key) {
 		} break;
 
 		default: {
-			InputField* focusedField = inputFocused->value;
+			struct InputField* focusedField = inputFocused->value;
 			if (!focusedField) {
 				break;
 			}
@@ -110,8 +110,8 @@ void handleInput(char key) {
 	}
 }
 
-InputField* createInputOfType(char flags, char type) {
-	InputField* field = malloc(sizeof(InputField));
+struct InputField* createInputOfType(char flags, char type) {
+	struct InputField* field = malloc(sizeof(struct InputField));
 	field->id = inputNextid++;
 	field->flags = flags;
 	field->type = type;
@@ -125,13 +125,13 @@ InputField* createInputOfType(char flags, char type) {
 	return field;
 }
 
-void inputLinkFlags(InputField* field, char* flagPtr) {
+void inputLinkFlags(struct InputField* field, char* flagPtr) {
 	field->guiElementFlags = flagPtr;
 }
 
-InputField* createInputText(unsigned char length, char flags) {
-	InputField* field = createInputOfType(flags, INPUT_TYPE_TEXT);
-	InputTextfieldData* data = malloc(sizeof(InputTextfieldData));
+struct InputField* createInputText(unsigned char length, char flags) {
+	struct InputField* field = createInputOfType(flags, INPUT_TYPE_TEXT);
+	struct InputTextfieldData* data = malloc(sizeof(struct InputTextfieldData));
 	data->length = length;	
 	data->chars = calloc(length + 1, sizeof(char));
 	field->data = data;
@@ -139,16 +139,16 @@ InputField* createInputText(unsigned char length, char flags) {
 	return field;
 }
 
-InputField* createInputButton(void (*onPress)(InputField*), char flags) {
-	InputField* field = createInputOfType(flags, INPUT_TYPE_BUTTON);
+struct InputField* createInputButton(void (*onPress)(struct InputField*), char flags) {
+	struct InputField* field = createInputOfType(flags, INPUT_TYPE_BUTTON);
 	field->data = onPress;
 	return field;
 }
 
 
-InputField* createInputProxy(void (*onKeyPress)(InputField* field, char key), void (*onDispose)(InputField* field), void* data, char flags) {
-	InputField* field = createInputOfType(flags, INPUT_TYPE_PROXY);
-	InputProxyData* pData = malloc(sizeof(InputProxyData));
+struct InputField* createInputProxy(void (*onKeyPress)(struct InputField* field, char key), void (*onDispose)(struct InputField* field), void* data, char flags) {
+	struct InputField* field = createInputOfType(flags, INPUT_TYPE_PROXY);
+	struct InputProxyData* pData = malloc(sizeof(struct InputProxyData));
 	pData->onKeyPress = onKeyPress;
 	pData->onDispose = onDispose;
 	pData->data = data;
@@ -157,15 +157,15 @@ InputField* createInputProxy(void (*onKeyPress)(InputField* field, char key), vo
 }	
 
 
-void disposeInputProxy(InputField* target) {
-	InputProxyData* pData = target->data;
+void disposeInputProxy(struct InputField* target) {
+	struct InputProxyData* pData = target->data;
 	pData->onDispose(target);
 }
 
-void disposeInputField(InputField* target) {
+void disposeInputField(struct InputField* target) {
 	switch (target->type) {
 		case (INPUT_TYPE_TEXT): {
-			InputTextfieldData* data = target->data;
+			struct InputTextfieldData* data = target->data;
 			free(data->chars);
 			free(data);
 		} break;
@@ -183,7 +183,7 @@ void disposeInputField(InputField* target) {
 	free(target);
 }
 
-void disposeOneInput(LinkedList* target) {
+void disposeOneInput(struct LinkedList* target) {
 	if (inputFieldsHead == target) {
 		// Don't need to change parent of first element
 		inputFieldsHead = inputFieldsHead->next;
@@ -192,7 +192,7 @@ void disposeOneInput(LinkedList* target) {
 		}
 	} else {
 		// We do for further ones though
-		LinkedList* search = inputFieldsHead;
+		struct LinkedList* search = inputFieldsHead;
 		while (search && search->next != target) {
 			search = search->next;
 		}
@@ -207,8 +207,8 @@ void disposeOneInput(LinkedList* target) {
 	free(target);
 }
 
-void disposeOneInputByField(InputField* field) {
-	LinkedList* targetEntry;
+void disposeOneInputByField(struct InputField* field) {
+	struct LinkedList* targetEntry = 0;
 	if (inputFieldsHead && inputFieldsHead->value == field) {
 		targetEntry = inputFieldsHead;
 		inputFieldsHead = targetEntry->next;
@@ -216,7 +216,7 @@ void disposeOneInputByField(InputField* field) {
 			inputFieldsTail = 0;
 		}
 	} else {
-		LinkedList* search = inputFieldsHead;
+		struct LinkedList* search = inputFieldsHead;
 		while (search && search->next->value != field) {
 			search = search -> next;
 		}
@@ -228,14 +228,16 @@ void disposeOneInputByField(InputField* field) {
 			}
 		}
 	}
-	free(targetEntry);
+	if (targetEntry) {
+		free(targetEntry);
+	}
 	disposeInputField(field);
 }
 
 void disposeInput() {
-	LinkedList* target = inputFieldsHead;
+	struct LinkedList* target = inputFieldsHead;
 	while (target) {
-		LinkedList* next = target->next;
+		struct LinkedList* next = target->next;
 		disposeInputField(target->value);
 		free(target);
 		target = next;

@@ -10,34 +10,34 @@
 #define INPUT_TYPE_BUTTON 2
 #define INPUT_TYPE_PROXY 3
 
-typedef struct InputField {
-	char id;
+struct InputField {
+	unsigned char id;
 	char flags;
 	char type;
 	void* data;
 	char* guiElementFlags;
-} InputField;
+};
 
-typedef struct InputProxyData {
-	void (*onKeyPress)(InputField* field, char key);
-	void (*onDispose)(InputField* field);
+struct InputProxyData {
+	void (*onKeyPress)(struct InputField* field, char key);
+	void (*onDispose)(struct InputField* field);
 	void* data;
-} InputProxyData;
+};
 
 void initInput();
 
 void handleInput(char key);
 
-InputField* createInputText(unsigned char length, char flags);
+struct InputField* createInputText(unsigned char length, char flags);
 
-InputField* createInputButton(void (*onPress)(InputField*), char flags);
+struct InputField* createInputButton(void (*onPress)(struct InputField*), char flags);
 
-InputField* createInputProxy(void (*onKeyPress)(InputField* field, char key), void (*onDispose)(InputField* field), void* data, char flags);
+struct InputField* createInputProxy(void (*onKeyPress)(struct InputField* field, char key), void (*onDispose)(struct InputField* field), void* data, char flags);
 
 void disposeInput();
 
-void disposeInputField(InputField* target);
+void disposeInputField(struct InputField* target);
 
-void disposeOneInputByField(InputField* target);
+void disposeOneInputByField(struct InputField* target);
 
 #endif

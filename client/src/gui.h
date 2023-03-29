@@ -13,55 +13,54 @@
 #define GUI_ELEMENT_TYPE_BUTTON 4
 #define GUI_ELEMENT_TYPE_PROXY 5
 
-typedef struct GuiElement {
+struct GuiElement {
 	SDL_Rect position;
 	char flags;
 	char type;
 	void* data;
-} GuiElement;
+};
 
-typedef struct InputTextfieldData {
+struct InputTextfieldData {
 	char* chars;
 	unsigned char length;
-} InputTextfieldData;
+};
 
-typedef struct InputButtonData {
+struct InputButtonData {
 	char* text;
-	void (*onPress)(InputField*);
-} InputButtonData;
+	void (*onPress)(struct InputField*);
+};
 
-typedef struct GuiProxyData {
+struct GuiProxyData {
 	void* (*onCreate)(struct GuiProxyData*);
 	void (*onDispose)(struct GuiProxyData*);
-	void (*onDraw)(GuiElement*, SDL_Surface*); 
-} GuiProxyData;
+	void (*onDraw)(struct GuiElement*, SDL_Surface*); 
+};
 
-
-typedef struct GuiDataContainerType {
-	LinkedList* children;
+struct GuiDataContainerType {
+	struct LinkedList* children;
 	SDL_Surface* surface;
-	short w;
-	short h;
-} GuiDataContainerType;
+	unsigned short w;
+	unsigned short h;
+};
 
-typedef struct GuiDataButtonType {
+struct GuiDataButtonType {
 	char* text;
-	InputField* inputField;
-} GuiDataButtonType;
+	struct InputField* inputField;
+};
 
-typedef struct GuiDataProxyType {
-	GuiProxyData* proxy;
+struct GuiDataProxyType {
+	struct GuiProxyData* proxy;
 	void* data;
-} GuiDataProxyType;
+};
 
-GuiElement* createGuiElement(SDL_Rect position, char flags,  char type, void* data);
+struct GuiElement* createGuiElement(SDL_Rect position, char flags, char type, void* data);
 
-void disposeGuiElement(GuiElement* element);
+void disposeGuiElement(struct GuiElement* element);
 
-void guiContainerLink(GuiElement* container, GuiElement* child);
+void guiContainerLink(struct GuiElement* container, struct GuiElement* child);
 
-void guiContainerUnlink(GuiElement* container, GuiElement* child);
+void guiContainerUnlink(struct GuiElement* container, struct GuiElement* child);
 
-void drawGuiElement(GuiElement* element, SDL_Surface* surface);
+void drawGuiElement(struct GuiElement* element, SDL_Surface* surface);
 
 #endif

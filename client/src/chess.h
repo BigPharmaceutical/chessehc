@@ -3,8 +3,7 @@
 
 #include "gui.h"
 
-
-#define CHESSPIECE_TYPE_NULL 1
+#define CHESSPIECE_TYPE_NULL 0
 #define CHESSPIECE_TYPE_PAWN 1
 #define CHESSPIECE_TYPE_TOWER 2
 #define CHESSPIECE_TYPE_HORSE 3
@@ -12,28 +11,27 @@
 #define CHESSPIECE_TYPE_QUEEN 5
 #define CHESSPIECE_TYPE_KING 6
 
-typedef struct ChessPiece {
-	char type;
+struct ChessPiece {
+	unsigned char type;
 	struct ChessGamePlayer* owner;
-} ChessPiece;
+};
 
-typedef struct ChessBoardRow {
-	ChessPiece* pieces[8];
-} ChessBoardRow;
+struct ChessBoardRow {
+	struct ChessPiece* pieces[8];
+};
 
-typedef struct ChessBoard {
-	short height;
-	ChessBoardRow* rows;
-	InputField* inputField;
-} ChessBoard;
+struct ChessBoard {
+	unsigned short height;
+	struct ChessBoardRow* rows;
+	struct InputField* inputField;
+};
 
 void initChess();
 
-ChessBoard* createChessBoard(short height);
+struct ChessBoard* createChessBoard(unsigned short height);
 
-void drawChessBoard(ChessBoard* board, SDL_Surface* surface);
+void drawChessBoard(struct ChessBoard* board, SDL_Surface* surface);
 
-void disposeChessBoard(ChessBoard* board);
-
+void disposeChessBoard(struct ChessBoard* board);
 
 #endif

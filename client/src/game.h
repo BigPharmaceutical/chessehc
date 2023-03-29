@@ -6,29 +6,27 @@
 #include "chess.h"
 #include "util.h"
 
-struct ChessGame;
-
-typedef struct ChessGamePlayer {
+struct ChessGamePlayer {
 	char* name;
-	char status;
+	unsigned char status;
 	struct ChessGame* chessGame;
-	int color;
-} ChessGamePlayer;
+	unsigned int color;
+};
 
-typedef struct ChessGame {
-	LinkedList* players;
-	GuiElement* guiProxy;
-	ChessBoard* board;
-} ChessGame;
+struct ChessGame {
+	struct LinkedList* players;
+	struct GuiElement* guiProxy;
+	struct ChessBoard* board;
+};
 
 void initGame();
 
-ChessGame* createGame();
-void disposeGame(ChessGame* game);
+struct ChessGame* createGame();
+void disposeGame(struct ChessGame* game);
 
-ChessGamePlayer* createChessGamePlayer(char* name, ChessGame* game);
-void gameContainerLink(GuiElement* container, ChessGame* game);
+struct ChessGamePlayer* createChessGamePlayer(char* name, struct ChessGame* game);
+void gameContainerLink(struct GuiElement* container, struct ChessGame* game);
 
-void disposeChessGamePlayer(ChessGamePlayer* player);
+void disposeChessGamePlayer(struct ChessGamePlayer* player);
 
 #endif

@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include "font.h"
 #include "fontblob.h"
+#include "util.h"
 
-const char brightnessValues[] = {0, 85, 170, 255};
+const unsigned char brightnessValues[] = {0, 85, 170, 255};
 SDL_Surface* charSurface;
 
 void initFont() {
@@ -14,25 +15,33 @@ void initFont() {
 			// Read brightness of pixel, mapped to [0,255] through lookup
 			unsigned char brightness = brightnessValues[(FONTBLOB[charIndex * 24 + pixel / 4] >> (6 - 2 * (pixel % 4))) & 0b11];
 			// Base offset in pixel array of this pixel
-			long byteOffset = 3 * (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
-			unsigned char* pixels = charSurface->pixels;
+			//unsigned long byteOffset = 3 * (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
+			/*unsigned char* pixels = charSurface->pixels;
 			pixels[byteOffset] = brightness;
 			pixels[byteOffset + 1] = brightness;
-			pixels[byteOffset + 2] = brightness;
+			pixels[byteOffset + 2] = brightness;*/
+
+			unsigned long pixelIndex = (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
+			struct PixelRGB* pixels = charSurface->pixels;
+			pixels[pixelIndex].r = brightness;
+			pixels[pixelIndex].g = brightness;
+			pixels[pixelIndex].b = brightness;
+			
 		}
 	}
 }
 
+
 void drawChar(SDL_Surface* destination, char character, SDL_Rect* target) {
-	SDL_Rect source;
-	source.x = character * 8;
-	source.y = 0;
-	source.w = 8;
-	source.h = 12;
-	SDL_BlitScaled(charSurface, &source, destination, target);
+	SDL_Rect charSource;
+	charSource.x = character * 8;
+	charSource.y = 0;
+	charSource.w = 8;
+	charSource.h = 12;
+	SDL_BlitScaled(charSurface, &charSource, destination, target);
 }
 
-void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing, char padLength) {
+void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char spacing, unsigned char padLength) {
 	SDL_Rect drawDest = *target;
 	char* drawStr = string;
 	while (*drawStr) {
@@ -41,7 +50,7 @@ void drawString(SDL_Surface* destination, char* string, SDL_Rect* target, char s
 		drawDest.x += drawDest.w + spacing;
 	}
 	if (padLength) {
-		for (char i = padLength - (char)(drawStr - string); i > 0; i--) {
+		for (unsigned char i = padLength - (char)(drawStr - string); i > 0; i--) {
 			drawChar(destination, ' ', &drawDest);
 			drawDest.x += drawDest.w + spacing;
 		}

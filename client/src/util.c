@@ -1,15 +1,15 @@
 #include "util.h"
 #include <stdlib.h>
 
-LinkedList* linkedListPrepend(LinkedList* destination, void* value) {
-	LinkedList* new = malloc(sizeof(LinkedList));
+struct LinkedList* linkedListPrepend(struct LinkedList* destination, void* value) {
+	struct LinkedList* new = malloc(sizeof(struct LinkedList));
 	new->value = value;
 	new->next = destination;
 	return new;
 }
 
-LinkedList* linkedListAppend(LinkedList* destination, void* value) {
-	LinkedList* new = malloc(sizeof(LinkedList));
+struct LinkedList* linkedListAppend(struct LinkedList* destination, void* value) {
+	struct LinkedList* new = malloc(sizeof(struct LinkedList));
 	new->value = value;
 	if (destination) {
 		while (destination->next) {
@@ -20,8 +20,8 @@ LinkedList* linkedListAppend(LinkedList* destination, void* value) {
 	return new;
 }
 
-LinkedList* linkedListInsert(LinkedList* after, void* value) {
-	LinkedList* new = malloc(sizeof(LinkedList));
+struct LinkedList* linkedListInsert(struct LinkedList* after, void* value) {
+	struct LinkedList* new = malloc(sizeof(struct LinkedList));
 	new->value = value;
 	if (after) {
 		new->next = after->next;
@@ -30,8 +30,8 @@ LinkedList* linkedListInsert(LinkedList* after, void* value) {
 	return new;
 }
 
-void* linkedListRemove(LinkedList* parent) {
-	LinkedList* target = parent->next;
+void* linkedListRemove(struct LinkedList* parent) {
+	struct LinkedList* target = parent->next;
 	if (!target) {
 		return 0;
 	}
@@ -41,8 +41,8 @@ void* linkedListRemove(LinkedList* parent) {
 	return data;
 }
 
-void linkedListDispose(LinkedList* list) {
-	LinkedList* next;
+void linkedListDispose(struct LinkedList* list) {
+	struct LinkedList* next;
 	while (list) {
 		next = list;
 		free(list);
@@ -50,7 +50,7 @@ void linkedListDispose(LinkedList* list) {
 	}
 }
 
-unsigned int linkedListLength(LinkedList* list) {
+unsigned int linkedListLength(struct LinkedList* list) {
 	unsigned int result = 0;
 	while (list) {
 		list = list->next;

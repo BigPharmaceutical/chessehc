@@ -3,11 +3,10 @@
 
 #include "gui.h"
 
-extern GuiElement* currentContainer;
+extern struct GuiElement* currentContainer;
 
 void initContent();
 
 void disposeContent();
-
 
 #endif

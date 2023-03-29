@@ -6,18 +6,18 @@
 #include "graphics.h"
 
 
-typedef struct ChessBoardInputData {
-	ChessBoard* board;
+struct ChessBoardInputData {
+	struct ChessBoard* board;
 	char selectX;
 	unsigned short selectY;
-} ChessBoardInputData;
+};
 
 void initChess() {
 
 }
 
-void boardInputKey(InputField* field, char key) {
-	ChessBoardInputData* data = ((InputProxyData*)field->data)->data;
+void boardInputKey(struct InputField* field, char key) {
+	struct ChessBoardInputData* data = ((struct InputProxyData*)field->data)->data;
 
 	switch (key) {
 		case (SDLK_h):
@@ -39,37 +39,35 @@ void boardInputKey(InputField* field, char key) {
 	}	   
 }
 
-void boardInputDispose(InputField* field) {
+void boardInputDispose(struct InputField* field) {
 
 }
 
-ChessBoard* createChessBoard(short height) {
-	ChessBoard* board = malloc(sizeof(ChessBoard));
+struct ChessBoard* createChessBoard(unsigned short height) {
+	struct ChessBoard* board = malloc(sizeof(struct ChessBoard));
 	board->height = height;
-	board->rows = calloc(height, sizeof(ChessBoardRow));
+	board->rows = calloc(height, sizeof(struct ChessBoardRow));
 
-	ChessBoardInputData* bData = malloc(sizeof(ChessBoardInputData));
+	struct ChessBoardInputData* bData = malloc(sizeof(struct ChessBoardInputData));
 	bData->board = board;
 	bData->selectX = 0;
 	bData->selectY = 0;
 
 	board->inputField = createInputProxy(*boardInputKey, *boardInputDispose, bData, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
 
-
-
 	return board;
 }
 
-void drawChessBoard(ChessBoard* board, SDL_Surface* surface) {
-	ChessBoardInputData* inputData = ((InputProxyData*)board->inputField->data)->data;
+void drawChessBoard(struct ChessBoard* board, SDL_Surface* surface) {
+	struct ChessBoardInputData* inputData = ((struct InputProxyData*)board->inputField->data)->data;
 	
 	SDL_Rect rect;
 	rect.w = 48;
 	rect.h = 48;
 
-	for (short r = 0; r < 9; r++) {
+	for (unsigned char r = 0; r < 9; r++) {
 		rect.y = r * 48 + 10;
-		int rowIndex = (inputData->selectY - 4 + r + board->height) % board->height;
+		unsigned short rowIndex = (inputData->selectY - 4 + r + board->height) % board->height;
 		for (unsigned char columnIndex = 0; columnIndex < 8; columnIndex++) {
 			rect.x = columnIndex * 48 + 10;
 			if ((inputData->selectY - 4 + r + columnIndex) % 2 == 0) {
@@ -79,19 +77,15 @@ void drawChessBoard(ChessBoard* board, SDL_Surface* surface) {
 			}
 
 			//todo make it not letters
-			
-			//ChessPiece piece = board->rows[rowIndex].pieces[columnIndex];
-			ChessPiece* piece = board->rows[rowIndex].pieces[columnIndex];	
+			struct ChessPiece* piece = board->rows[rowIndex].pieces[columnIndex];	
 			if (!piece) {
 				continue;
 			}
 
-			char dChar = piece->type + 96;
+			unsigned char dChar = piece->type + 96;
 			drawChar(surface, dChar, &rect);
-
-
-
 		}
+
 		rect.x = 8 * 48 + 20;
 		drawChar(surface, rowIndex + 48, &rect);
 	}
@@ -104,7 +98,7 @@ void drawChessBoard(ChessBoard* board, SDL_Surface* surface) {
 	graphicsDyeSurface(surface, 255, 0, 125); 
 }
 
-void disposeChessBoard(ChessBoard* board) {
+void disposeChessBoard(struct ChessBoard* board) {
 	disposeOneInputByField(board->inputField);
 	free(board);
 }

@@ -1,21 +1,27 @@
 #ifndef H_UTIL
 #define H_UTIL
 
-typedef struct LinkedList {
+struct LinkedList {
 	void* value;
 	struct LinkedList* next;
-} LinkedList;
+};
 
-LinkedList* linkedListPrepend(LinkedList* destination, void* value);
+struct PixelRGB {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+};
 
-LinkedList* linkedListAppend(LinkedList* destination, void* value);
+struct LinkedList* linkedListPrepend(struct LinkedList* destination, void* value);
 
-LinkedList* linkedListInsert(LinkedList* after, void* value);
+struct LinkedList* linkedListAppend(struct LinkedList* destination, void* value);
 
-void* linkedListRemove(LinkedList* parent);
+struct LinkedList* linkedListInsert(struct LinkedList* after, void* value);
 
-void linkedListDispose(LinkedList* list);
+void* linkedListRemove(struct LinkedList* parent);
 
-unsigned int linkedListLength(LinkedList* list);
+void linkedListDispose(struct LinkedList* list);
+
+unsigned int linkedListLength(struct LinkedList* list);
 
 #endif

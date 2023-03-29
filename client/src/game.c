@@ -8,45 +8,45 @@ void initGame() {
 
 }
 
-void gameGuiDispose(GuiProxyData* data) {
+void gameGuiDispose(struct GuiProxyData* data) {
 }
 
-void gameGuiDraw(GuiElement* element, SDL_Surface* surface) {	
-	ChessGame* game = ((GuiDataProxyType*) element->data)->data;
+void gameGuiDraw(struct GuiElement* element, SDL_Surface* surface) {	
+	struct ChessGame* game = ((struct GuiDataProxyType*) element->data)->data;
 	drawChessBoard(game->board, surface);
 }	
 
-ChessGame* createGame() {
-	ChessGame* game = malloc(sizeof(ChessGame));
+struct ChessGame* createGame() {
+	struct ChessGame* game = malloc(sizeof(struct ChessGame));
 	game->players = 0;
 	game->board = createChessBoard(32);
 
-	GuiProxyData* proxyData = malloc(sizeof(GuiProxyData));
+	struct GuiProxyData* proxyData = malloc(sizeof(struct GuiProxyData));
 	proxyData->onCreate = 0;
 	proxyData->onDispose = &gameGuiDispose;
 	proxyData->onDraw = &gameGuiDraw;
 	game->guiProxy = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_PROXY, proxyData);
-	((GuiDataProxyType*) game->guiProxy->data)->data = game;
+	((struct GuiDataProxyType*) game->guiProxy->data)->data = game;
 	game->board->inputField->guiElementFlags = &game->guiProxy->flags;
 	
 	return game;
 }
 
-void startGame(ChessGame* game) {
+void startGame(struct ChessGame* game) {
 	
 
 }
 
-void gameContainerLink(GuiElement* container, ChessGame* game) {
+void gameContainerLink(struct GuiElement* container, struct ChessGame* game) {
 	guiContainerLink(container, game->guiProxy);
 }
 
-void disposeGame(ChessGame* game) {
+void disposeGame(struct ChessGame* game) {
 	free(game);
 }
 
-ChessGamePlayer* createChessGamePlayer(char* name, ChessGame* game) {
-	ChessGamePlayer* player = malloc(sizeof(ChessGamePlayer));
+struct ChessGamePlayer* createChessGamePlayer(char* name, struct ChessGame* game) {
+	struct ChessGamePlayer* player = malloc(sizeof(struct ChessGamePlayer));
 	player->name = name;
 	player->status = PLAYER_FLAG_ALIVE;
 	player->chessGame = game;
@@ -55,7 +55,7 @@ ChessGamePlayer* createChessGamePlayer(char* name, ChessGame* game) {
 	return player;
 }
 
-void disposeChessGamePlayer(ChessGamePlayer* player) {
+void disposeChessGamePlayer(struct ChessGamePlayer* player) {
 	free(player);
 }
 

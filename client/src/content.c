@@ -4,9 +4,9 @@
 #include "game.h"
 
 
-GuiElement* currentContainer;
+struct GuiElement* currentContainer;
 
-void tempPress(InputField* field) {
+void tempPress(struct InputField* field) {
 	printf("pressed!\r\n");
 }
 
@@ -17,27 +17,27 @@ void initContent() {
 	temp.w = 24;
 	temp.h = 36;
 	
-	GuiElement* a = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
-	GuiElement* b = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "hello world!");
+	struct GuiElement* a = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
+	struct GuiElement* b = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "hello world!");
 	temp.y = 50;
-	GuiElement* c = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "o4it[p4'34");
+	struct GuiElement* c = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXT, "o4it[p4'34");
 	temp.y = 100;
-	GuiElement* d = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 32);
+	struct GuiElement* d = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 32);
 	temp.x = 100;
 	temp.y = 200;
 	temp.w = 48;
 	temp.h = 72;
-	InputButtonData bd;
+	struct InputButtonData bd;
 	bd.text = "button!";
 	bd.onPress = *tempPress;
-	GuiElement* e = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_BUTTON, &bd);
+	struct GuiElement* e = createGuiElement(temp, 0, GUI_ELEMENT_TYPE_BUTTON, &bd);
 	guiContainerLink(a, b);
 	guiContainerLink(a, c);
 	guiContainerLink(a, d);
 	guiContainerLink(a, e);
 	
-	GuiElement* g = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
-	ChessGame* game = createGame();
+	struct GuiElement* g = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
+	struct ChessGame* game = createGame();
 	gameContainerLink(g, game);	
 	guiContainerLink(a, g);
 

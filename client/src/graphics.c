@@ -25,12 +25,6 @@ int initGraphics() {
 	return 1;
 }
 
-struct PixelRGB {
-	unsigned char r;
-	unsigned char g;
-	unsigned char b;
-};
-
 /* Only use with 24-bit pixel surfaces (without alpha) */
 void graphicsDyeSurface(SDL_Surface* surface, unsigned char r, unsigned char g, unsigned char b) {
 	unsigned long max = surface->w * surface->h;
