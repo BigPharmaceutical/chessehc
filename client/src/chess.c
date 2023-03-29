@@ -3,6 +3,8 @@
 #include "input.h"
 #include "font.h"
 #include "SDL2/SDL.h"
+#include "graphics.h"
+
 
 typedef struct ChessBoardInputData {
 	ChessBoard* board;
@@ -10,10 +12,7 @@ typedef struct ChessBoardInputData {
 	unsigned short selectY;
 } ChessBoardInputData;
 
-
 void initChess() {
-	
-
 
 }
 
@@ -71,13 +70,27 @@ void drawChessBoard(ChessBoard* board, SDL_Surface* surface) {
 	for (short r = 0; r < 9; r++) {
 		rect.y = r * 48 + 10;
 		int rowIndex = (inputData->selectY - 4 + r + board->height) % board->height;
-		for (char c = 0; c < 8; c++) {
-			rect.x = c * 48 + 10;
-			if ((inputData->selectY - 4 + r + c) % 2 == 0) {
+		for (unsigned char columnIndex = 0; columnIndex < 8; columnIndex++) {
+			rect.x = columnIndex * 48 + 10;
+			if ((inputData->selectY - 4 + r + columnIndex) % 2 == 0) {
 				SDL_FillRect(surface, &rect, 0xFFFFFFFF);
 			} else {
 				SDL_FillRect(surface, &rect, 0xFF000000);
 			}
+
+			//todo make it not letters
+			
+			//ChessPiece piece = board->rows[rowIndex].pieces[columnIndex];
+			ChessPiece* piece = board->rows[rowIndex].pieces[columnIndex];	
+			if (!piece) {
+				continue;
+			}
+
+			char dChar = piece->type + 96;
+			drawChar(surface, dChar, &rect);
+
+
+
 		}
 		rect.x = 8 * 48 + 20;
 		drawChar(surface, rowIndex + 48, &rect);
@@ -87,9 +100,8 @@ void drawChessBoard(ChessBoard* board, SDL_Surface* surface) {
 	rect.y = 4 * 48 + 10;
 	SDL_FillRect(surface, &rect, 0xFF00FF00);
 
-	rect.x = 3 * 48 + 10;
-	rect.y = (4 - inputData->selectY + board->height) % board->height * 48 + 10;
-	SDL_FillRect(surface, &rect, 0xFFFFFF00);
+	// Make everything COLORFUL
+	graphicsDyeSurface(surface, 255, 0, 125); 
 }
 
 void disposeChessBoard(ChessBoard* board) {

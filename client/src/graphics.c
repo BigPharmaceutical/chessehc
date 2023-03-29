@@ -24,7 +24,24 @@ int initGraphics() {
 
 	return 1;
 }
-   
+
+struct PixelRGB {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+};
+
+/* Only use with 24-bit pixel surfaces (without alpha) */
+void graphicsDyeSurface(SDL_Surface* surface, unsigned char r, unsigned char g, unsigned char b) {
+	unsigned long max = surface->w * surface->h;
+	struct PixelRGB* pixels = surface->pixels;
+	for (unsigned long i = 0; i < max; i++) {
+		pixels[i].r += (pixels[i].r & r) + ((pixels[i].r ^ r) >> 1);
+		pixels[i].g += (pixels[i].g & g) + ((pixels[i].g ^ g) >> 1);
+		pixels[i].b += (pixels[i].b & b) + ((pixels[i].b ^ b) >> 1);
+	}
+}
+
 void graphicsRender() {
 	// Swap buffers and clear
 	SDL_UpdateWindowSurface(window);

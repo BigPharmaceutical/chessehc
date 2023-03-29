@@ -36,8 +36,10 @@ void initContent() {
 	guiContainerLink(a, d);
 	guiContainerLink(a, e);
 	
+	GuiElement* g = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
 	ChessGame* game = createGame();
-	gameContainerLink(a, game);	
+	gameContainerLink(g, game);	
+	guiContainerLink(a, g);
 
 	currentContainer = a;
 }

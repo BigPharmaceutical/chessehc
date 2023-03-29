@@ -13,4 +13,7 @@ int initGraphics();
 void disposeGraphics();
 
 void graphicsRender();
+
+void graphicsDyeSurface(SDL_Surface* surface, unsigned char r, unsigned char g, unsigned char b);
+
 #endif

@@ -116,7 +116,7 @@ void drawGuiElement(GuiElement* element, SDL_Surface* surface) {
 
 GuiDataContainerType* createGuiDataContainer(SDL_Rect* param) {
 	GuiDataContainerType* new = malloc(sizeof(GuiDataContainerType));
-	new->surface = SDL_CreateRGBSurface(0, param->w, param->h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	new->surface = SDL_CreateRGBSurface(0, param->w, param->h, 24, 0x00FF0000, 0x0000FF00, 0x000000FF, 0);
 	new->children = 0;
 	new->w = param->w;
 	new->h = param->h;
@@ -208,7 +208,7 @@ SDL_Surface* guiContainerSurface(GuiElement* container) {
 
 //////// Text ////////
 void* createGuiDataText(char* param) {
-	char length = 0;
+	unsigned char length = 0;
 	while (param[length++] != '\0') {}
 	char* data = malloc(length);
 	memcpy(data, param, length); 
