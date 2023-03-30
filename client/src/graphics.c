@@ -15,6 +15,7 @@ int initGraphics() {
 	if (!window) return 0;
 
 	windowSurface = SDL_GetWindowSurface(window);
+	SDL_SetSurfaceBlendMode(windowSurface, SDL_BLENDMODE_BLEND);
 
 	fullRect = malloc(sizeof(SDL_Rect));
 	fullRect->x = 0;
@@ -24,12 +25,11 @@ int initGraphics() {
 
 	return 1;
 }
-
-/* Only use with 24-bit pixel surfaces (without alpha) */
 void graphicsDyeSurface(SDL_Surface* surface, unsigned char r, unsigned char g, unsigned char b) {
 	unsigned long max = surface->w * surface->h;
-	struct PixelRGB* pixels = surface->pixels;
+	struct PixelARGB* pixels = surface->pixels;
 	for (unsigned long i = 0; i < max; i++) {
+		// average bit manipulation
 		pixels[i].r += (pixels[i].r & r) + ((pixels[i].r ^ r) >> 1);
 		pixels[i].g += (pixels[i].g & g) + ((pixels[i].g ^ g) >> 1);
 		pixels[i].b += (pixels[i].b & b) + ((pixels[i].b ^ b) >> 1);

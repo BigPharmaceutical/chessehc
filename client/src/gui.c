@@ -116,7 +116,8 @@ void drawGuiElement(struct GuiElement* element, SDL_Surface* surface) {
 
 struct GuiDataContainerType* createGuiDataContainer(SDL_Rect* param) {
 	struct GuiDataContainerType* new = malloc(sizeof(struct GuiDataContainerType));
-	new->surface = SDL_CreateRGBSurface(0, param->w, param->h, 24, 0x00FF0000, 0x0000FF00, 0x000000FF, 0);
+	new->surface = SDL_CreateRGBSurface(0, param->w, param->h, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+	SDL_SetSurfaceBlendMode(new->surface, SDL_BLENDMODE_BLEND);
 	new->children = 0;
 	new->w = param->w;
 	new->h = param->h;
@@ -194,6 +195,7 @@ SDL_Surface* guiContainerSurface(struct GuiElement* container) {
 
 	if (isElementTreeInvalidated(container)) {
 		struct LinkedList* target = data->children;
+		SDL_FillRect(data->surface, 0, 0);
 		while (target) {
 			drawGuiElement(target->value, data->surface);
 			target = target->next;

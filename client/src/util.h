@@ -6,7 +6,9 @@ struct LinkedList {
 	struct LinkedList* next;
 };
 
-struct PixelRGB {
+// So it seems that SDL is rather inconsistent with the order? Alpha is always on the other side than set in masks.
+struct PixelARGB {
+	unsigned char a;
 	unsigned char r;
 	unsigned char g;
 	unsigned char b;

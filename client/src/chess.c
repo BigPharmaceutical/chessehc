@@ -73,7 +73,7 @@ void drawChessBoard(struct ChessBoard* board, SDL_Surface* surface) {
 			if ((inputData->selectY - 4 + r + columnIndex) % 2 == 0) {
 				SDL_FillRect(surface, &rect, 0xFFFFFFFF);
 			} else {
-				SDL_FillRect(surface, &rect, 0xFF000000);
+				SDL_FillRect(surface, &rect, 0x000000FF);
 			}
 
 			//todo make it not letters
@@ -92,7 +92,7 @@ void drawChessBoard(struct ChessBoard* board, SDL_Surface* surface) {
 
 	rect.x = inputData->selectX * 48 + 10;
 	rect.y = 4 * 48 + 10;
-	SDL_FillRect(surface, &rect, 0xFF00FF00);
+	SDL_FillRect(surface, &rect, 0x00FF00FF);
 
 	// Make everything COLORFUL
 	graphicsDyeSurface(surface, 255, 0, 125); 

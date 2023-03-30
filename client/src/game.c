@@ -50,7 +50,7 @@ struct ChessGamePlayer* createChessGamePlayer(char* name, struct ChessGame* game
 	player->name = name;
 	player->status = PLAYER_FLAG_ALIVE;
 	player->chessGame = game;
-	player->color = 0xFFFF0000;
+	player->color = 0xFFFF00FF;
 	game->players = linkedListAppend(game->players, player);
 	return player;
 }

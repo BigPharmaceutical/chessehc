@@ -8,8 +8,9 @@ SDL_Surface* charSurface;
 
 void initFont() {
 	// This needs to be one bigger for a null char
-	charSurface = SDL_CreateRGBSurface(0, 8 * 128, 12, 24, 0xFF0000, 0x00FF00, 0x0000FF, 0);
-	
+	charSurface = SDL_CreateRGBSurface(0, 8 * 128, 12, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+	//SDL_SetSurfaceBlendMode(charSurface, SDL_BLENDMODE_BLEND);
+
 	for (unsigned char charIndex = 0; charIndex < 128; charIndex++) {
 		for (unsigned int pixel = 0; pixel < 96; pixel++) {
 			// Read brightness of pixel, mapped to [0,255] through lookup
@@ -22,11 +23,11 @@ void initFont() {
 			pixels[byteOffset + 2] = brightness;*/
 
 			unsigned long pixelIndex = (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
-			struct PixelRGB* pixels = charSurface->pixels;
+			struct PixelARGB* pixels = charSurface->pixels;
 			pixels[pixelIndex].r = brightness;
 			pixels[pixelIndex].g = brightness;
 			pixels[pixelIndex].b = brightness;
-			
+			pixels[pixelIndex].a = (brightness > 0) * 255;
 		}
 	}
 }
