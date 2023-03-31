@@ -2,6 +2,7 @@
 #define GRAPHICS_H
 
 #include <SDL2/SDL.h>
+#include "util.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -14,6 +15,6 @@ void disposeGraphics();
 
 void graphicsRender();
 
-void graphicsDyeSurface(SDL_Surface* surface, unsigned char r, unsigned char g, unsigned char b);
+void graphicsDyeSurface(SDL_Surface* surface, struct PixelRGB* color);
 
 #endif

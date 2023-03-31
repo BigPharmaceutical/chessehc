@@ -15,13 +15,6 @@ void initFont() {
 		for (unsigned int pixel = 0; pixel < 96; pixel++) {
 			// Read brightness of pixel, mapped to [0,255] through lookup
 			unsigned char brightness = brightnessValues[(FONTBLOB[charIndex * 24 + pixel / 4] >> (6 - 2 * (pixel % 4))) & 0b11];
-			// Base offset in pixel array of this pixel
-			//unsigned long byteOffset = 3 * (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
-			/*unsigned char* pixels = charSurface->pixels;
-			pixels[byteOffset] = brightness;
-			pixels[byteOffset + 1] = brightness;
-			pixels[byteOffset + 2] = brightness;*/
-
 			unsigned long pixelIndex = (8 * charIndex + (pixel % 8) + (pixel / 8) * charSurface->w);
 			struct PixelARGB* pixels = charSurface->pixels;
 			pixels[pixelIndex].r = brightness;

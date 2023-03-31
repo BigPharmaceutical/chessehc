@@ -121,7 +121,10 @@ struct GuiDataContainerType* createGuiDataContainer(SDL_Rect* param) {
 	new->children = 0;
 	new->w = param->w;
 	new->h = param->h;
-	//new->invalidated = 1;
+	
+	new->color.r = 255;
+	new->color.g = 255;
+	new->color.b = 255;
 	return new;
 }
 
@@ -170,6 +173,10 @@ void guiContainerUnlink(struct GuiElement* container, struct GuiElement* child) 
 	}
 }
 
+void guiContainerDye(struct GuiElement* container, struct PixelRGB color) {
+	((struct GuiDataContainerType*) container->data)->color = color;
+}
+
 char isElementTreeInvalidated(struct GuiElement* element) {
 	if (element->flags & GUI_ELEMENT_FLAG_INVALIDATED) {
 		return 1;
@@ -199,6 +206,9 @@ SDL_Surface* guiContainerSurface(struct GuiElement* container) {
 		while (target) {
 			drawGuiElement(target->value, data->surface);
 			target = target->next;
+		}
+		if (data->color.r != 255 || data->color.g != 255 || data->color.b != 255) {
+			graphicsDyeSurface(data->surface, &data->color);
 		}
 	}
 	return data->surface;

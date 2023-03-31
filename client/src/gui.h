@@ -41,6 +41,7 @@ struct GuiDataContainerType {
 	SDL_Surface* surface;
 	unsigned short w;
 	unsigned short h;
+	struct PixelRGB color;
 };
 
 struct GuiDataButtonType {
@@ -60,6 +61,8 @@ void disposeGuiElement(struct GuiElement* element);
 void guiContainerLink(struct GuiElement* container, struct GuiElement* child);
 
 void guiContainerUnlink(struct GuiElement* container, struct GuiElement* child);
+
+void guiContainerDye(struct GuiElement* container, struct PixelRGB color);
 
 void drawGuiElement(struct GuiElement* element, SDL_Surface* surface);
 

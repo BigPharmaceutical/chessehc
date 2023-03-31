@@ -25,14 +25,14 @@ int initGraphics() {
 
 	return 1;
 }
-void graphicsDyeSurface(SDL_Surface* surface, unsigned char r, unsigned char g, unsigned char b) {
+void graphicsDyeSurface(SDL_Surface* surface, struct PixelRGB* color) {
 	unsigned long max = surface->w * surface->h;
 	struct PixelARGB* pixels = surface->pixels;
 	for (unsigned long i = 0; i < max; i++) {
 		// average bit manipulation
-		pixels[i].r += (pixels[i].r & r) + ((pixels[i].r ^ r) >> 1);
-		pixels[i].g += (pixels[i].g & g) + ((pixels[i].g ^ g) >> 1);
-		pixels[i].b += (pixels[i].b & b) + ((pixels[i].b ^ b) >> 1);
+		pixels[i].r += (pixels[i].r & color->r) + ((pixels[i].r ^ color->r) >> 1);
+		pixels[i].g += (pixels[i].g & color->g) + ((pixels[i].g ^ color->g) >> 1);
+		pixels[i].b += (pixels[i].b & color->b) + ((pixels[i].b ^ color->b) >> 1);
 	}
 }
 

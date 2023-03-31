@@ -84,10 +84,10 @@ void handleInput(char key) {
 		} break;
 
 		default: {
-			struct InputField* focusedField = inputFocused->value;
-			if (!focusedField) {
+			if (!inputFocused) {
 				break;
 			}
+			struct InputField* focusedField = inputFocused->value;
 
 			switch (focusedField->type) {
 				case (INPUT_TYPE_TEXT): {

@@ -93,9 +93,6 @@ void drawChessBoard(struct ChessBoard* board, SDL_Surface* surface) {
 	rect.x = inputData->selectX * 48 + 10;
 	rect.y = 4 * 48 + 10;
 	SDL_FillRect(surface, &rect, 0x00FF00FF);
-
-	// Make everything COLORFUL
-	graphicsDyeSurface(surface, 255, 0, 125); 
 }
 
 void disposeChessBoard(struct ChessBoard* board) {
