@@ -36,7 +36,7 @@ void boardInputKey(struct InputField* field, char key) {
 		case (SDLK_w):
 			data->selectY = (data->selectY + data->board->height - 1) % data->board->height;
 			break;
-	}	   
+	}		
 }
 
 void boardInputDispose(struct InputField* field) {
