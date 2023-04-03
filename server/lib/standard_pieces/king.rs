@@ -96,7 +96,7 @@ impl StandardCompatiblePiece for King {
         }
 
         // Castling
-        if !self.is_in_check(board, from)?.expect("castle check quasi-state") {
+        if !self.is_in_check(board, from)?.expect("Castling king is_in_check returned None.") {
             for dir in [-1, 1] { 
                 let mut castle_distance = None;
 
@@ -119,7 +119,6 @@ impl StandardCompatiblePiece for King {
                 let Some(castle_distance) = castle_distance else { continue };
                 if castle_distance > 2 {
                     let Some(position) = from + (&CoordinateDelta(dir * 2, 0), board) else { continue };
-                    if self.is_in_check(board, &position)?.expect("castle after into check quasi") { continue };
                     moves.push((position, 0));
                 }
             }
