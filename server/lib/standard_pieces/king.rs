@@ -96,29 +96,31 @@ impl StandardCompatiblePiece for King {
         }
 
         // Castling
-        for dir in [-1, 1] {
-            let mut castle_distance = None;
+        if !self.is_in_check(board, from)?.expect("Castling king is_in_check returned None.") {
+            for dir in [-1, 1] { 
+                let mut castle_distance = None;
 
-            for d in 1..isize::try_from(board.height()).expect("board height exceeded isize") {
-                let Some(position) = from + (&CoordinateDelta(dir * d, 0), board) else { break };
-                let Ok(spot) = board.get(&position) else { break };
+                for d in 1..isize::try_from(board.height()).expect("board height exceeded isize") {
+                    let Some(position) = from + (&CoordinateDelta(dir * d, 0), board) else { break };
+                    let Ok(spot) = board.get(&position) else { break };
 
-                let Some(piece) = spot.get() else { continue };
+                    let Some(piece) = spot.get() else { continue };
 
-                if piece.player() != self.0 {
-                    break;
+                    if piece.player() != self.0 {
+                        break;
+                    }
+                    if !piece.can_castle() {
+                        break;
+                    }
+
+                    castle_distance = Some(d);
                 }
-                if !piece.can_castle() {
-                    break;
+
+                let Some(castle_distance) = castle_distance else { continue };
+                if castle_distance > 2 {
+                    let Some(position) = from + (&CoordinateDelta(dir * 2, 0), board) else { continue };
+                    moves.push((position, 0));
                 }
-
-                castle_distance = Some(d);
-            }
-
-            let Some(castle_distance) = castle_distance else { continue };
-            if castle_distance > 2 {
-                let Some(position) = from + (&CoordinateDelta(dir * 2, 0), board) else { continue };
-                moves.push((position, 0));
             }
         }
 
