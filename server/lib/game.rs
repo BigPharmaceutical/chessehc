@@ -28,7 +28,7 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     /// Add a piece to the board
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - `position` is not on the board
     /// - [`Error<Set>::SpotOccupied`] - A piece is already in the `position`
@@ -51,7 +51,7 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     /// Generate the valid moves for the current player
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::PieceError`] - Error from a piece
     pub fn generate_valid_moves(&mut self) -> Result<(), Error<Set>> {
@@ -103,9 +103,9 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     /// Attempt a move on the board
-    /// 
+    ///
     /// Returns an option with the board and partial moves if the move can be made
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in `move` is not on the board
     /// - [`Error<Set>::PieceError`] - Error from a piece
@@ -158,7 +158,7 @@ impl<Set: PieceSet> Game<Set> {
 
     /// Start the next turn by incrementing turn,
     /// checking for check and generating the valid moves
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn start_turn(&mut self) -> Result<Vec<PartialDelta<Set::PieceId>>, Error<Set>> {
@@ -196,7 +196,7 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     /// Make a move
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in `move` is not on the board
     /// - [`Error<Set>::PieceError`] - An error from a piece

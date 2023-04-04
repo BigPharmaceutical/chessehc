@@ -3,7 +3,7 @@ use futures_util::{
     stream::{SplitSink, StreamExt},
     SinkExt,
 };
-use tokio::net::TcpStream;
+use tokio::{net::TcpStream, time::Instant};
 use tokio_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
 
 use crate::server::{
@@ -25,8 +25,8 @@ const BASE64_ENGINE: engine::GeneralPurpose =
 pub struct Client<'a> {
     pub peer_address: String,
     pub write: &'a mut SplitSink<WebSocketStream<TcpStream>, Message>,
-    pub log_in_challenge: Option<(String, Vec<u8>)>,
-    pub log_in: Option<String>,
+    pub log_in_challenge: Option<(i64, [u8; 32], Instant)>,
+    pub log_in: Option<i64>,
 }
 
 impl<'a> Client<'a> {
@@ -64,6 +64,11 @@ pub async fn handle(socket: TcpStream) {
 
     while let Some(Ok(message)) = read.next().await {
         match message {
+            Message::Binary(data) => {
+                if client.handle_message(&data).await.is_err() {
+                    break;
+                }
+            }
             Message::Text(encoded_data) => {
                 // Decode the text to binary data
                 let length = (encoded_data.len() + 3) / 4 * 3;
@@ -81,12 +86,7 @@ pub async fn handle(socket: TcpStream) {
                     continue;
                 }
 
-                if client.handle_message(data).await.is_err() {
-                    break;
-                }
-            }
-            Message::Binary(data) => {
-                if client.handle_message(data).await.is_err() {
+                if client.handle_message(&data).await.is_err() {
                     break;
                 }
             }
@@ -112,9 +112,12 @@ pub async fn handle(socket: TcpStream) {
     println!("{}: Disconnected", client.peer_address);
 }
 
-impl<'a> Client<'a> {
-    pub async fn handle_message(&mut self, data: Vec<u8>) -> Result<(), ()> {
-        let request = match Request::parse(&data) {
+impl<'a, 'b> Client<'a> {
+    pub async fn handle_message(&'b mut self, data: &'b [u8]) -> Result<(), ()>
+    where
+        'a: 'b,
+    {
+        let request = match Request::parse(data) {
             Ok(request) => request,
             Err(error) => {
                 if self
@@ -129,8 +132,13 @@ impl<'a> Client<'a> {
             }
         };
 
-        request.run(self);
-
-        Ok(())
+        if let Err(err) = request.run(self).await {
+            self.write
+                .send(Message::Binary(Response::from(err).into()))
+                .await
+                .map_err(|_| ())
+        } else {
+            Ok(())
+        }
     }
 }

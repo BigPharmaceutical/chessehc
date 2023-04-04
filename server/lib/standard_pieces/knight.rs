@@ -124,8 +124,10 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION).expect("failed to add first knight to board");
-        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION).expect("failed to add first second to board");
+        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION)
+            .expect("failed to add first knight to board");
+        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION)
+            .expect("failed to add first second to board");
 
         let tests = [
             [false, true, false, true, false],
@@ -158,8 +160,10 @@ mod test {
 
         let mut game = Game::new(2, 5, 5);
 
-        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION).expect("failed to add first knight to board");
-        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION).expect("failed to add first second to board");
+        game.add_piece(Knight::new(0), &KNIGHT_1_POSITION)
+            .expect("failed to add first knight to board");
+        game.add_piece(Knight::new(1), &KNIGHT_2_POSITION)
+            .expect("failed to add first second to board");
 
         let tests = [
             [false, true, false, true, false],

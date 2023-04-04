@@ -1,15 +1,13 @@
 use crate::server::response::Responder;
 
-pub mod log_in;
-pub mod uname_use;
+pub mod challenge;
+pub mod id;
 
-use self::{log_in::LogIn, uname_use::UsernameUse};
+use self::{challenge::Challenge, id::Identity};
 
 pub enum Authentication {
-    LI(LogIn),
-    InvalidPublicKey,
-    InvalidUsername,
-    UnameUse(UsernameUse),
+    Challenge(Challenge),
+    Id(Identity),
 }
 
 impl Responder for Authentication {
@@ -17,16 +15,13 @@ impl Responder for Authentication {
         let Some(byte_zero) = buffer.get_mut(0) else { return };
 
         *byte_zero |= match &self {
-            Self::LI(_) => 0,
-            Self::InvalidPublicKey => 1,
-            Self::InvalidUsername => 2,
-            Self::UnameUse(_) => 3,
-        } << 1;
+            Self::Challenge(_) => 0,
+            Self::Id(_) => 1,
+        } << 2;
 
         match self {
-            Self::LI(err) => err.write(buffer),
-            Self::UnameUse(err) => err.write(buffer),
-            _ => (),
+            Self::Challenge(err) => err.write(buffer),
+            Self::Id(err) => err.write(buffer),
         }
     }
 }

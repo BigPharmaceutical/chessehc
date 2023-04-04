@@ -9,8 +9,11 @@ result (0):
   - 0 - public (3-4)
     - 0 - status
       - *todo*
-    - 1 - profile
-      - *todo*
+    - 1 - profile (5)
+      - 0 - account (6)
+        - 0 - [username](#username)
+        - 1 - [account id](#account-id)
+      - 1 - *todo*
     - 2 - *unreserved*
     - 3 - [log in challenge](#log-in-challenge)
   - 1 - [Confirmation](#confirmation)
@@ -21,7 +24,7 @@ result (0):
     - 1 - board
       - *todo*
 - 1 - error (1-2)
-  - 0 - *unreserved*
+  - 0 - [server](#server)
   - 1 - in-game
     - *todo*
   - 2 - invalid (3-4)
@@ -30,15 +33,17 @@ result (0):
         - 0 - [not logged in](#not-logged-in)
         - 1 - [logged in](#logged-in)
       - 1 - [not game host](#not-game-host)
-    - 1 - authentication (5-6)
-      - 0 - log in (7)
+    - 1 - authentication (5)
+      - 0 - challenge (6-7)
         - 0 - [no challenge request](#no-challenge-request)
-        - 1 - [log in failed](#log-in-failed)
-      - 1 - [invalid public key](#invalid-public-key)
-      - 2 - [invalid username](#invalid-username)
-      - 3 - username use (7)
-        - 0 - [unknown username](#unknown-username)
-        - 1 - [username in use](#username-in-use)
+        - 1 - [challenge timed out](#challenge-timed-out)
+        - 2 - [log in failed](#log-in-failed)
+        - 3 - [invalid public key](#invalid-public-key)
+      - 1 - identity (6-7)
+        - 0 - [unknown id](#unknown-id)
+        - 1 - [invalid username](#invalid-username)
+        - 2 - [unknown username](#unknown-username)
+        - 3 - [username in use](#username-in-use)
     - 2 - game (5-6)
       - 0 - [invalid game id](#invalid-game-id)
       - 1 - [unknown game id](#unknown-game-id)
@@ -51,20 +56,34 @@ result (0):
       - 1 - [data](#malformed-data)
     - 1 - [base64](#malformed-base64)
 
-### Confirmation
+### Username
 
-Type: `00100000`  
-Data: op-code (1 byte)
+Type: `00001000`  
+Data: username (string)
 
-### Game Id
+### Account Id
 
-Type: `01000000`  
-Data: game id (bytes)
+Type: `00001010`  
+Data: account id (i64)
 
 ### Log in Challenge
 
 Type: `00011000`  
 Data: challenge (bytes)
+
+### Confirmation
+
+Type: `00100000`  
+Data: op-code (1 byte)
+
+### Game Token
+
+Type: `01000000`  
+Data: game token (string)
+
+### Server
+
+Type: `10000000`  
 
 ### Not Logged In
 
@@ -82,17 +101,25 @@ Type: `11000100`
 
 Type: `11001000`
 
-### Log In Failed
+### Challenge Timed Out
 
 Type: `11001001`
 
-### Invalid Public Key
+### Log In Failed
 
 Type: `11001010`
 
-### Invalid Username
+### Invalid Public Key
+
+Type: `11001011`
+
+### Unknown Id
 
 Type: `11001100`
+
+### Invalid Username
+
+Type: `11001101`
 
 ### Unknown Username
 

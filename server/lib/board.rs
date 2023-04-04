@@ -32,7 +32,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Get a spot on the board
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - `coordinate` is not on the board
     pub fn get(&self, coordinate: &Coordinate) -> Result<&Spot<Set>, Error<Set>> {
@@ -52,7 +52,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Mutably get a spot on the board
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - `coordinate` is not on the board
     pub fn get_mut(&mut self, coordinate: &Coordinate) -> Result<&mut Spot<Set>, Error<Set>> {
@@ -71,7 +71,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Check if a piece at a spot is being attacked
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - `coordinate` is not on the board
     pub fn is_being_attacked(
@@ -84,7 +84,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Check if a player is in check
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn is_player_in_check(&self, player: u8) -> Result<bool, Error<Set>> {
@@ -111,7 +111,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Get the players in check
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::PieceError`] - An error from a piece
     pub fn players_in_check(&self) -> Result<Vec<u8>, Error<Set>> {
@@ -140,7 +140,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Add the attacks from a piece to the board
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::PieceError`] - An error from `piece`
     /// - [`Error<Set>::CoordinateNotOnBoard`] - `piece` tried to attack a coordinate not on the board
@@ -157,7 +157,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Remove the attacks from a piece on the board
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::PieceError`] - An error from `piece`
     /// - [`Error<Set>::CoordinateNotOnBoard`] - `piece` tried to attack a coordinate not on the board
@@ -173,7 +173,7 @@ impl<Set: PieceSet> Board<Set> {
     }
 
     /// Perform a delta on the board
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::CoordinateNotOnBoard`] - A coordinate in the `delta` is not on the board
     /// - [`Error<Set>::NoPieceAtSpot`] - A coordinate in the `delta` which should contain a piece does not
@@ -292,7 +292,7 @@ impl<Set: PieceSet> Board<Set> {
 
     /// Attempts to make the move, assuming it has already
     /// been validated and returns the points gained
-    /// 
+    ///
     /// # Errors
     /// - [`Error<Set>::NoPieceAtSpot`] - There is no piece at `move.to`
     /// - [`Error<Set>::PieceError`] - Error from a piece

@@ -1,0 +1,84 @@
+{
+  "db": "PostgreSQL",
+  "05a87a6e772b9155eb294052f78e5f6f95751519d5856d79e0e9b17d7db708d4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "public_key",
+          "ordinal": 0,
+          "type_info": "Bytea"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "\nSELECT public_key\n    FROM accounts\n    WHERE account_id = $1;\n        "
+  },
+  "77dfc47b360899521a8caf0b4e80b7cf6e443caa0a92803a8d3ac9bb8b44a52a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "account_id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\nSELECT account_id\n    FROM accounts\n    WHERE username = $1;\n        "
+  },
+  "9d9d3d769be746b0e5b3ad31389a5a8b5363ae4c23601b2bd0ae05c859e12819": {
+    "describe": {
+      "columns": [
+        {
+          "name": "username",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "\nSELECT username\n    FROM accounts\n    WHERE account_id = $1;\n        "
+  },
+  "e708d38c64d6e1a9170bb83f1bb6c202730406e3fe60c9937f08841c6aa0e58e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "account_id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bytea"
+        ]
+      }
+    },
+    "query": "\nINSERT INTO accounts ( username, public_key )\n    VALUES ( $1, $2 )\n    RETURNING account_id;\n        "
+  }
+}

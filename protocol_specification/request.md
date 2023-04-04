@@ -8,8 +8,11 @@ domain (0-1):
 - 0 - public (2-3)
   - 0 - status
     - *todo*
-  - 1 - profile
-    - *todo*
+  - 1 - profile (4)
+    - 0 - account (5)
+      - 0 - [get username](#get-username)
+      - 1 - [lookup username](#lookup-username)
+    - 1 - *todo*
   - 2 - [create account](#create-account)
   - 3 - log in (4)
     - 0 - [request challenge](#request-challenge)
@@ -31,10 +34,24 @@ domain (0-1):
       - *todo*
     - 3 - [leave](#leave-game)
 
+### Get Username
+
+Op-code: `00010000`  
+Data: id (i64)  
+[Response](./response.md#username)  
+[Error](./response.md#unknown-id)
+
+### Lookup Username
+
+Op-code: `00010100`  
+Data: username (string)  
+[Response](./response.md#account-id)  
+[Error](./response.md#unknown-username)
+
 ### Create Account
 
 Op-code: `00100000`  
-Data: username, *null*, public key  
+Data: username (string), *null*, public key (32 bytes)  
 [Response](./response.md#confirmation)  
 [Error](./response.md#logged-in)  
 [Error](./response.md#invalid-username)  
@@ -44,7 +61,7 @@ Data: username, *null*, public key
 ### Request Challenge
 
 Op-code: `00110000`  
-Data: username (string)  
+Data: username (i64)  
 [Response](./response.md#log-in-challenge)  
 [Error](./response.md#logged-in)  
 [Error](./response.md#unknown-username)
@@ -52,7 +69,7 @@ Data: username (string)
 ### Challenge Response
 
 Op-code: `00111000`  
-Data: signed challenge (bytes)  
+Data: signed challenge (64 bytes)  
 [Response](./response.md#confirmation)  
 [Error](./response.md#no-challenge-request)  
 [Error](./response.md#log-in-failed)
@@ -69,7 +86,7 @@ Data: new username (string)
 ### Change Key
 
 Op-code: `01100000`  
-Data: new public key (bytes)  
+Data: new public key (32 bytes)  
 [Response](./response.md#confirmation)  
 [Error](./response.md#not-logged-in)  
 [Error](./response.md#invalid-public-key)
@@ -83,14 +100,14 @@ Op-code: `01110000`
 ### Create Game
 
 Op-code: `10000000`  
-[Response](./response.md#game-id)  
+[Response](./response.md#game-token)  
 [Error](./response.md#in-game)  
 [Error](./response.md#not-logged-in)
 
 ### Join Game
 
 Op-code: `10100000`  
-Data: game id (string)  
+Data: game token (string)  
 [Response](./response.md#confirmation)  
 [Error](./response.md#in-game)  
 [Error](./response.md#not-logged-in)  

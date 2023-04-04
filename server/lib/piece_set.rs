@@ -18,7 +18,7 @@ where
 
     // Probing
     /// If the piece can be in check, return whether it is in check, otherwise return None.
-    /// 
+    ///
     /// # Errors
     /// [`Self::Error`]
     fn is_in_check(
@@ -30,7 +30,7 @@ where
     }
     /// Return the valid moves of a piece.
     /// Returns moves in the form `(to, data)`.
-    /// 
+    ///
     /// # Errors
     /// [`Self::Error`]
     fn valid_moves(
@@ -41,7 +41,7 @@ where
         n_players_in_game: u8,
     ) -> Result<Vec<(Coordinate, u8)>, Self::Error>;
     /// Returns the positions that a piece is attacking.
-    /// 
+    ///
     /// # Errors
     /// [`Self::Error`]
     fn attacking(
@@ -52,7 +52,7 @@ where
 
     // Moving
     /// Method to be run mid-move
-    /// 
+    ///
     /// # Errors
     /// [`Self::Error`]
     fn mid_move(

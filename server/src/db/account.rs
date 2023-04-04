@@ -1,0 +1,82 @@
+pub async fn add(username: &str, public_key: &[u8]) -> sqlx::Result<i64> {
+    let pool = super::DB_CONNECTION
+        .get()
+        .expect("database is not initialised");
+
+    let rec = sqlx::query!(
+        r#"
+INSERT INTO accounts ( username, public_key )
+    VALUES ( $1, $2 )
+    RETURNING account_id;
+        "#,
+        username,
+        public_key
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec.account_id)
+}
+
+pub async fn get_username(id: i64) -> Result<Option<String>, ()> {
+    let pool = super::DB_CONNECTION
+        .get()
+        .expect("database is not initialised");
+
+    match sqlx::query!(
+        r#"
+SELECT username
+    FROM accounts
+    WHERE account_id = $1;
+        "#,
+        id
+    )
+    .fetch_one(pool)
+    .await {
+        Ok(rec) => Ok(Some(rec.username)),
+        Err(sqlx::Error::RowNotFound) => Ok(None),
+        Err(_) => Err(()),
+    }
+}
+
+pub async fn get_public_key(id: i64) -> Result<Option<Vec<u8>>, ()> {
+    let pool = super::DB_CONNECTION
+        .get()
+        .expect("database is not initialised");
+
+    match sqlx::query!(
+        r#"
+SELECT public_key
+    FROM accounts
+    WHERE account_id = $1;
+        "#,
+        id
+    )
+    .fetch_one(pool)
+    .await {
+        Ok(rec) => Ok(Some(rec.public_key)),
+        Err(sqlx::Error::RowNotFound) => Ok(None),
+        Err(_) => Err(()),
+    }
+}
+
+pub async fn lookup(username: &str) -> Result<Option<i64>, ()> {
+    let pool = super::DB_CONNECTION
+        .get()
+        .expect("database is not initialised");
+
+    match sqlx::query!(
+        r#"
+SELECT account_id
+    FROM accounts
+    WHERE username = $1;
+        "#,
+        username
+    )
+    .fetch_one(pool)
+    .await {
+        Ok(rec) => Ok(Some(rec.account_id)),
+        Err(sqlx::Error::RowNotFound) => Ok(None),
+        Err(_) => Err(()),
+    }
+}

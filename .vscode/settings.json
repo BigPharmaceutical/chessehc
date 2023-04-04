@@ -2,5 +2,8 @@
     "rust-analyzer.cargo.features": [
         "server"
     ],
-    "rust-analyzer.check.command": "clippy"
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.extraEnv": {
+        "SQLX_OFFLINE": "true"
+    }
 }

@@ -9,7 +9,7 @@ mod response;
 pub async fn main(address: &str) -> Result<(), Box<dyn Error>> {
     // Create TCP listener
     let listener = TcpListener::bind(address).await?;
-    println!("Listening on: {address}");
+    println!("* Listening on: {address}");
 
     loop {
         // Wait for inbound socket

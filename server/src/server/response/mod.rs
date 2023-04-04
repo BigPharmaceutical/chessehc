@@ -5,6 +5,8 @@ pub mod ok;
 
 use self::{err::Error, ok::Ok};
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 pub trait Responder {
     fn write(self, buffer: &mut Vec<u8>);
 }
