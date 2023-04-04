@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use async_trait::async_trait;
-use ed25519_dalek::PUBLIC_KEY_LENGTH;
+use ed25519_dalek::{VerifyingKey, PUBLIC_KEY_LENGTH};
 use sqlx::error::DatabaseError;
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
         response::{
             err::{
                 inval_req::{
-                    auth::{Authentication, id::Identity, challenge::Challenge},
+                    auth::{challenge::Challenge, id::Identity, Authentication},
                     InvalidRequest,
                 },
                 mal_req::{mal_bin::MalformedBinary, MalformedRequest},
@@ -69,9 +69,9 @@ fn parse_new_account(buffer: &[u8]) -> Result<Public> {
     };
 
     if !(USERNAME_MIN_LENGTH..=USERNAME_MAX_LENGTH).contains(&null_separator_position) {
-        return Err(Error::InvalReq(InvalidRequest::Auth(
-            Authentication::Id(Identity::InvalidUsername),
-        )));
+        return Err(Error::InvalReq(InvalidRequest::Auth(Authentication::Id(
+            Identity::InvalidUsername,
+        ))));
     }
 
     if buffer.len() - null_separator_position - 1 != PUBLIC_KEY_LENGTH {
@@ -87,9 +87,9 @@ fn parse_new_account(buffer: &[u8]) -> Result<Public> {
     let name = String::from_utf8_lossy(name_bytes);
 
     if !validate_username(&name) {
-        return Err(Error::InvalReq(InvalidRequest::Auth(
-            Authentication::Id(Identity::InvalidUsername),
-        )));
+        return Err(Error::InvalReq(InvalidRequest::Auth(Authentication::Id(
+            Identity::InvalidUsername,
+        ))));
     }
 
     Ok(Public::CreateAccount(name, public_key_bytes))
@@ -100,6 +100,14 @@ async fn create_new_account<'a, 'b>(
     public_key: &[u8],
     client: &mut Client<'b>,
 ) -> Result<()> {
+    let mut verifying_key_bytes = [0; PUBLIC_KEY_LENGTH];
+    verifying_key_bytes.copy_from_slice(public_key);
+    if VerifyingKey::from_bytes(&verifying_key_bytes).is_err() {
+        return Err(Error::InvalReq(InvalidRequest::Auth(
+            Authentication::Challenge(Challenge::InvalidPublicKey),
+        )));
+    }
+
     let id = match account::add(&username, public_key).await {
         Ok(id) => id,
         Err(err) => {
