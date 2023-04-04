@@ -14,7 +14,15 @@ struct LinkedList* inputFieldsTail = 0;
 
 void initInput() {
 }
+
+struct InputField* getInputFocused() {
+	return inputFocused->value;
+}
+
 void handleInputSelected(struct InputField* field) {
+}
+
+void handleInputUnselected(struct InputField* field) {
 }
 
 void handleInputText(struct InputField* field, char key) {
@@ -75,7 +83,20 @@ void handleInput(char key) {
 				}
 				dest = dest->next;
 			}
-			handleInputSelected(dest->value);
+	
+			struct InputField* fieldPrev = inputFocused->value;
+			struct InputField* fieldNext = dest->value;
+
+			handleInputUnselected(fieldPrev);
+			handleInputSelected(fieldNext);
+
+			if (fieldPrev->guiElementFlags) {
+				*fieldPrev->guiElementFlags |= GUI_ELEMENT_FLAG_INVALIDATED;
+			}
+			if (fieldNext->guiElementFlags) {
+				*fieldNext->guiElementFlags |= GUI_ELEMENT_FLAG_INVALIDATED;
+			}
+
 			inputFocused = dest;
 		} break;
 

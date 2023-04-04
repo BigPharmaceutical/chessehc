@@ -17,4 +17,6 @@ void graphicsRender();
 
 void graphicsDyeSurface(SDL_Surface* surface, struct PixelRGB* color);
 
+void graphicsDrawRectOutline(SDL_Surface* surface, SDL_Rect* innerArea, short thickness, int color);
+
 #endif

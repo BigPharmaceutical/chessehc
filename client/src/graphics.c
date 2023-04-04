@@ -36,6 +36,16 @@ void graphicsDyeSurface(SDL_Surface* surface, struct PixelRGB* color) {
 	}
 }
 
+void graphicsDrawRectOutline(SDL_Surface* surface, SDL_Rect* innerArea, short thickness, int color) {
+	SDL_Rect outer;
+	outer.x = innerArea->x - thickness;
+	outer.y = innerArea->y - thickness;
+	outer.w = innerArea->w + 2 * thickness;
+	outer.h = innerArea->h + 2 * thickness;
+	SDL_FillRect(surface, &outer, color);
+	SDL_FillRect(surface, innerArea, 0x00000000);
+}
+
 void graphicsRender() {
 	// Swap buffers and clear
 	SDL_UpdateWindowSurface(window);

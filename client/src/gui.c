@@ -45,14 +45,16 @@ struct GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* 
 			break;
 
 		case GUI_ELEMENT_TYPE_TEXTFIELD: {
-			struct InputField* f = createGuiDataTextfield((long) param);
-			f->guiElementFlags = &element->flags;
-			element->data = f;
+			struct InputField* field = createGuiDataTextfield((long) param);
+			field->guiElementFlags = &element->flags;
+			element->data = field;
 		} break;
 		
-		case GUI_ELEMENT_TYPE_BUTTON:
-			element->data = createGuiDataButton(param);
-			break;
+		case GUI_ELEMENT_TYPE_BUTTON: {
+			struct GuiDataButtonType* data = createGuiDataButton(param);
+			data->inputField->guiElementFlags = &element->flags;
+			element->data = data;
+		} break;
 
 		case GUI_ELEMENT_TYPE_PROXY:
 			element->data = createGuiDataProxy(param);
@@ -243,8 +245,17 @@ void disposeGuiDataTextfield(void* data) {
 }
 
 void drawGuiElementTextfield(struct GuiElement* element, SDL_Surface* surface) {
-	struct InputTextfieldData* field = ((struct InputField*)element->data)->data;
-	drawString(surface, field->chars, &(element->position), 1, field->length);
+	struct InputField* field = element->data;
+	struct InputTextfieldData* fieldData = field->data;
+	if (field == getInputFocused()) {
+		SDL_Rect backRect;
+		backRect.x = element->position.x - 1;
+		backRect.y = element->position.y - 1;
+		backRect.w = (1 + element->position.w) * fieldData->length + 2;
+		backRect.h = element->position.h + 2;
+		graphicsDrawRectOutline(surface, &backRect, 2, 0x101010FF);
+	}
+	drawString(surface, fieldData->chars, &(element->position), 1, fieldData->length);
 }
 
 
@@ -267,7 +278,17 @@ void disposeGuiDataButton(struct GuiDataButtonType* data) {
 }
 
 void drawGuiElementButton(struct GuiElement* element, SDL_Surface* surface) {
-	struct InputButtonData* data = element->data;
+	struct GuiDataButtonType* data = element->data;
+	if (data->inputField == getInputFocused()) {
+		unsigned char length = 0;
+		while (*(data->text + length++));
+		SDL_Rect backRect;
+		backRect.x = element->position.x - 1;
+		backRect.y = element->position.y - 1;
+		backRect.w = (1 + element->position.w) * (length - 1) + 2;
+		backRect.h = element->position.h + 2;
+		graphicsDrawRectOutline(surface, &backRect, 2, 0x101010FF);
+	}
 	drawString(surface, data->text, &(element->position), 1, 0);
 }
 

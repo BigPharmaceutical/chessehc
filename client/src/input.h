@@ -26,6 +26,8 @@ struct InputProxyData {
 
 void initInput();
 
+struct InputField* getInputFocused();
+
 void handleInput(char key);
 
 struct InputField* createInputText(unsigned char length, char flags);
