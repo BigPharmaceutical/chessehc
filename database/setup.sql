@@ -19,12 +19,14 @@ CREATE TABLE games (
 
 CREATE TABLE players (
     game_id bigint NOT NULL,
-    player_id bigint NOT NULL,
+    player_id bigint,
     points int NOT NULL,
 
     PRIMARY KEY ( game_id, player_id ),
 
     CONSTRAINT fk_game
         FOREIGN KEY ( game_id ) REFERENCES games ( game_id ),
-    -- player_id does not have to be a foreign key, as accounts can be deleted
+    CONSTRAINT fk_account
+        FOREIGN KEY ( player_id ) REFERENCES accounts ( account_id )
+        ON DELETE SET NULL
 );
