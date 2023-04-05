@@ -2,9 +2,7 @@ use std::error::Error;
 
 use tokio::net::TcpListener;
 
-mod handler;
-mod request;
-mod response;
+pub mod handler;
 
 pub async fn main(address: &str) -> Result<(), Box<dyn Error>> {
     // Create TCP listener

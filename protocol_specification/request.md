@@ -18,8 +18,8 @@ domain (0-1):
     - 0 - [request challenge](#request-challenge)
     - 1 - [challenge response](#challenge-response)
 - 1 - account (2-3)
-  - 0 - [change username](#change-username)
-  - 1 - *unreserved*
+  - 0 - [log out](#log-out)
+  - 1 - [change username](#change-username)
   - 2 - [change key](#change-key)
   - 3 - [delete](#delete-account)
 - 2 - game (2)
@@ -74,9 +74,15 @@ Data: signed challenge (64 bytes)
 [Error](./response.md#no-challenge-request)  
 [Error](./response.md#log-in-failed)
 
-### Change Username
+### Log Out
 
 Op-code: `01000000`  
+[Response](./response.md#confirmation)  
+[Error](./response.md#not-logged-in)
+
+### Change Username
+
+Op-code: `01010000`  
 Data: new username (string)  
 [Response](./response.md#confirmation)  
 [Error](./response.md#not-logged-in)  

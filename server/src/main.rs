@@ -11,9 +11,12 @@ use std::env;
 
 use crate::config::{BIND_URL_ENV_VARIABLE, DATABASE_URL_ENV_VARIABLE};
 
-pub mod config;
+mod config;
 mod db;
+mod request;
+mod response;
 mod server;
+mod game;
 
 macro_rules! get_env_var {
     ( $var:ident, $def:expr ) => {

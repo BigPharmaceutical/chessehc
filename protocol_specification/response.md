@@ -17,9 +17,10 @@ result (0):
     - 2 - *unreserved*
     - 3 - [log in challenge](#log-in-challenge)
   - 1 - [Confirmation](#confirmation)
-  - 2 - [game id](#game-id)
+  - 2 - [account]
   - 3 - in-game (3)
-    - 0 - game
+    - 0 - game (4-5)
+      - 0 - [game token](#game-token)
       - *todo*
     - 1 - board
       - *todo*

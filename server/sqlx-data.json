@@ -20,6 +20,32 @@
     },
     "query": "\nSELECT public_key\n    FROM accounts\n    WHERE account_id = $1;\n        "
   },
+  "588405ff0e6672e5189e6bec76fb5abcb6f3d5278f876e11f06b6eab015c9336": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\nUPDATE accounts\n    SET username = $2\n    WHERE account_id = $1;\n        "
+  },
+  "627e69b045f38c9e26b67fb1dc5fe55c0369edfc9e4ffbf34b1f477b1c1dafa6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Bytea"
+        ]
+      }
+    },
+    "query": "\nUPDATE accounts\n    SET public_key = $2\n    WHERE account_id = $1;\n        "
+  },
   "77dfc47b360899521a8caf0b4e80b7cf6e443caa0a92803a8d3ac9bb8b44a52a": {
     "describe": {
       "columns": [
@@ -39,6 +65,18 @@
       }
     },
     "query": "\nSELECT account_id\n    FROM accounts\n    WHERE username = $1;\n        "
+  },
+  "816ca9812e5a07669b0b274ecc4394d2fb69a8ed905cc86f9d2282dc36384b61": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "\nDELETE FROM accounts\n    WHERE account_id = $1;\n        "
   },
   "9d9d3d769be746b0e5b3ad31389a5a8b5363ae4c23601b2bd0ae05c859e12819": {
     "describe": {

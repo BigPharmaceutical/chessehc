@@ -6,12 +6,11 @@ use futures_util::{
 use tokio::{net::TcpStream, time::Instant};
 use tokio_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
 
-use crate::server::{
+use crate::{
+    config::CHALLENGE_LENGTH,
     request::{Request, Requester},
-    response::err::mal_req::MalformedRequest,
+    response::{err::mal_req::MalformedRequest, Response},
 };
-
-use super::response::Response;
 
 /// Configuration without padding when encoding and optional padding when decoding
 const BASE64_CONFIG: engine::GeneralPurposeConfig = engine::GeneralPurposeConfig::new()
@@ -24,8 +23,9 @@ const BASE64_ENGINE: engine::GeneralPurpose =
 
 pub struct Client<'a> {
     pub peer_address: String,
-    pub write: &'a mut SplitSink<WebSocketStream<TcpStream>, Message>,
-    pub log_in_challenge: Option<(i64, [u8; 32], Instant)>,
+    pub close: bool,
+    write: &'a mut SplitSink<WebSocketStream<TcpStream>, Message>,
+    pub log_in_challenge: Option<(i64, [u8; CHALLENGE_LENGTH], Instant)>,
     pub log_in: Option<i64>,
 }
 
@@ -36,10 +36,17 @@ impl<'a> Client<'a> {
     ) -> Self {
         Self {
             peer_address,
+            close: false,
             write,
             log_in_challenge: None,
             log_in: None,
         }
+    }
+
+    pub async fn send(&mut self, data: Vec<u8>) -> Result<(), ()> {
+        self.write.send(Message::Binary(data)).await.map_err(|_| {
+            self.close = false;
+        })
     }
 }
 
@@ -62,12 +69,12 @@ pub async fn handle(socket: TcpStream) {
     // Create the client
     let mut client = Client::new(peer_address, &mut write);
 
-    while let Some(Ok(message)) = read.next().await {
+    while !client.close {
+        let Some(Ok(message)) = read.next().await else { break };
+
         match message {
             Message::Binary(data) => {
-                if client.handle_message(&data).await.is_err() {
-                    break;
-                }
+                client.handle_message(&data).await;
             }
             Message::Text(encoded_data) => {
                 // Decode the text to binary data
@@ -75,20 +82,11 @@ pub async fn handle(socket: TcpStream) {
                 let mut data = Vec::with_capacity(length);
 
                 if BASE64_ENGINE.decode_vec(encoded_data, &mut data).is_err() {
-                    if client
-                        .write
-                        .send(MalformedRequest::b64().into())
-                        .await
-                        .is_err()
-                    {
-                        break;
-                    }
+                    client.send(MalformedRequest::b64().into()).await.ok();
                     continue;
                 }
 
-                if client.handle_message(&data).await.is_err() {
-                    break;
-                }
+                client.handle_message(&data).await;
             }
 
             Message::Ping(data) => {
@@ -113,32 +111,20 @@ pub async fn handle(socket: TcpStream) {
 }
 
 impl<'a, 'b> Client<'a> {
-    pub async fn handle_message(&'b mut self, data: &'b [u8]) -> Result<(), ()>
+    pub async fn handle_message(&'b mut self, data: &'b [u8])
     where
         'a: 'b,
     {
-        let request = match Request::parse(data) {
-            Ok(request) => request,
+        println!("{data:?}");
+        match Request::parse(data) {
+            Ok(request) => {
+                if let Err(err) = request.run(self).await {
+                    self.send(Response::Err(err).into()).await.ok();
+                }
+            }
             Err(error) => {
-                if self
-                    .write
-                    .send(Message::Binary(Response::from(error).into()))
-                    .await
-                    .is_err()
-                {
-                    return Err(());
-                };
-                return Ok(());
+                self.send(Response::from(error).into()).await.ok();
             }
         };
-
-        if let Err(err) = request.run(self).await {
-            self.write
-                .send(Message::Binary(Response::from(err).into()))
-                .await
-                .map_err(|_| ())
-        } else {
-            Ok(())
-        }
     }
 }

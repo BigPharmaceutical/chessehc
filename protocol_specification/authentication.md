@@ -6,17 +6,17 @@ The authentication is based on key based signing
 
 →  
 [`public / log in / request challenge`](./request.md#request-challenge)  
-username (string)
+account id (i64)
 
 ←  
 [`ok / public / log in challenge`](./response.md#log-in-challenge)  
-challenge (bytes)
+challenge (32 bytes)
 
-Sign the challenge using the private key associated with the username.
+Sign the challenge using the private key associated with the account.
 
 →  
 [`public / log in / challenge response`](./request.md#challenge-response)  
-signed challenge (bytes)
+challenge signature (64 bytes)
 
 ←  
 [`ok / confirmation`](./response.md#confirmation)

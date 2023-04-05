@@ -14,6 +14,8 @@ pub const USERNAME_MAX_LENGTH: usize = 15;
 
 pub const LOGIN_TIMEOUT_SECS: u64 = 10;
 
+pub const CHALLENGE_LENGTH: usize = 32;
+
 lazy_static! {
     static ref USERNAME_REGEX: Regex =
         Regex::new(r"^[!./0-9?A-Z_a-z]*$").expect("failed to compile regex");
