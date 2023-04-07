@@ -281,11 +281,11 @@ void drawGuiElementButton(struct GuiElement* element, SDL_Surface* surface) {
 	struct GuiDataButtonType* data = element->data;
 	if (data->inputField == getInputFocused()) {
 		unsigned char length = 0;
-		while (*(data->text + length++));
+		for(;(data->text)[length];length++);
 		SDL_Rect backRect;
 		backRect.x = element->position.x - 1;
 		backRect.y = element->position.y - 1;
-		backRect.w = (1 + element->position.w) * (length - 1) + 2;
+		backRect.w = (1 + element->position.w) * length + 2;
 		backRect.h = element->position.h + 2;
 		graphicsDrawRectOutline(surface, &backRect, 2, 0x101010FF);
 	}
