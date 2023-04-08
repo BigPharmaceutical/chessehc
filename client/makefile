@@ -1,10 +1,18 @@
-build: src/* lib/*/* font/fontblob.c
-	gcc -g -o chessehc src/* font/fontblob.c lib/mongoose/*.c -Ilib/mongoose `sdl2-config --cflags --libs` -lm
+SOURCES := $(wildcard src/*.c lib/*/*.c)
+OBJECTS := $(addprefix objs/,$(patsubst %.c,%.o,$(SOURCES)))
+
+build: objs/font/fontblob.o $(OBJECTS)
+	gcc -o chessehc $^ `sdl2-config --cflags --libs`
+
+objs/%.o: %.c
+	mkdir -p objs/$(dir $<)
+	gcc -g -o objs/$(<:.c=.o) -c $< -Ilib/mongoose -Isrc `sdl2-config --cflags --libs`
 
 font/fontblob.c: font/raw/*.txt
 	cd font && groovy buildFont.groovy && cd ..
 
 clean:
-	rm ./chessehc
-	rm ./font/fontblob.c
+	rm -f ./chessehc
+	rm -f ./font/fontblob.c
+	rm -rf ./objs
 
