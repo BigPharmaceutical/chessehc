@@ -23,18 +23,20 @@ void netResponse(unsigned char opcode, void* data) {
 }
 
 void netHandler(struct mg_connection* connection, int event, void* eventData, void* funcData) {
-	if (event != MG_EV_WS_MSG) {
-		switch (event) {
-			case (MG_EV_WS_OPEN):
-				printf("Websocket is open.");
-				break;
-			case (MG_EV_ERROR):
-				printf("Websocket opening error.");
-				break;
-		}
-		return;
+	switch (event) {
+		case (MG_EV_WS_OPEN):
+			printf("Websocket is open.\n");
+			break;
+		case (MG_EV_ERROR):
+			printf("Websocket opening error.\n");
+			break;
+		case (MG_EV_WS_MSG):
+			netResponse(*(char*)eventData, eventData + 1);
+			break;
 	}
-	netResponse(*(char*)funcData, funcData + 1);
+	if (event == MG_EV_ERROR || event == MG_EV_CLOSE || event == MG_EV_WS_MSG) {
+		*(char*)funcData = 1;
+	}
 }
 
 struct NetSession* netConnect(char* url) {

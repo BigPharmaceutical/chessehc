@@ -13,7 +13,8 @@ struct GuiElement* inputIp;
 struct GuiElement* inputCode;
 
 void buttonPlayPressed(struct InputField* field) {
-	struct InputTextfieldData* data = field->data;
+	struct InputField* ipField = inputIp->data;
+	struct InputTextfieldData* data = ipField->data;
 	netConnect(data->chars);
 }
 
