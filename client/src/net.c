@@ -24,6 +24,9 @@ void netResponse(unsigned char opcode, void* data) {
 
 void netHandler(struct mg_connection* connection, int event, void* eventData, void* funcData) {
 	switch (event) {
+		case (MG_EV_OPEN):
+			connection->is_hexdumping = 1;
+			break;
 		case (MG_EV_WS_OPEN):
 			printf("Websocket is open.\n");
 			break;
