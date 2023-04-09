@@ -6,14 +6,14 @@ use crate::{
     r#move::Move,
 };
 
-use super::{Error, StandardCompatiblePiece};
+use super::{Error, StandardCompatiblePiece, StandardCompatiblePieceSet};
 
 #[derive(Clone, Debug)]
 pub struct King(u8, bool);
 
 impl King {
     #[must_use]
-    pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
+    pub fn new(player: u8) -> StandardCompatiblePieceSet {
         Box::new(Self(player, false))
     }
 }
@@ -37,7 +37,7 @@ impl StandardCompatiblePiece for King {
 
     fn is_in_check(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         position: &Coordinate,
     ) -> Result<Option<bool>, Error> {
         board
@@ -48,7 +48,7 @@ impl StandardCompatiblePiece for King {
 
     fn attacking(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
     ) -> Result<Vec<Coordinate>, Error> {
         let mut attacks = Vec::new();
@@ -69,7 +69,7 @@ impl StandardCompatiblePiece for King {
 
     fn valid_moves(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
         _turn: u16,
         _n_players: u8,
@@ -127,11 +127,11 @@ impl StandardCompatiblePiece for King {
 
     fn mid_move(
         &mut self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         r#move: &Move,
         _turn: u16,
         _n_players: u8,
-    ) -> Result<(Vec<Delta<Box<dyn StandardCompatiblePiece>>>, u16), Error> {
+    ) -> Result<(Vec<Delta<StandardCompatiblePieceSet>>, u16), Error> {
         let delta = CoordinateDelta(
             isize::try_from(r#move.to.0).expect("move too large")
                 - isize::try_from(r#move.from.0).expect("move too large"),
@@ -184,7 +184,7 @@ impl StandardCompatiblePiece for King {
         Ok((deltas, 0))
     }
 
-    fn clone(&self) -> Box<dyn StandardCompatiblePiece> {
+    fn clone(&self) -> StandardCompatiblePieceSet {
         Box::new(Clone::clone(self))
     }
 }

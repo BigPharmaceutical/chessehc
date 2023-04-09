@@ -11,7 +11,7 @@ pub enum InGame {
 }
 
 impl Responder for InGame {
-    fn write(self, buffer: &mut Vec<u8>) {
+    fn write(self, _buffer: &mut Vec<u8>) {
         todo!()
     }
 }

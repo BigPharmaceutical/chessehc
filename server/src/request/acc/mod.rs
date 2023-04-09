@@ -176,7 +176,9 @@ async fn delete_account<'a>(client: &mut Client<'a>) -> Result<()> {
 mod test {
     use crate::request::{acc::Account, Request, Requester};
 
-    use super::{CHANGE_PUBLIC_KEY_OP_CODE, CHANGE_USERNAME_OP_CODE, LOG_OUT_OP_CODE, DELETE_OP_CODE};
+    use super::{
+        CHANGE_PUBLIC_KEY_OP_CODE, CHANGE_USERNAME_OP_CODE, DELETE_OP_CODE, LOG_OUT_OP_CODE,
+    };
 
     #[test]
     fn test_log_out_op_code() {
@@ -243,10 +245,7 @@ mod test {
 
         let change_public_code = Request::parse(&request);
         assert!(
-            matches!(
-                change_public_code,
-                Ok(Request::Acc(Account::ChangeKey(_)))
-            ),
+            matches!(change_public_code, Ok(Request::Acc(Account::ChangeKey(_)))),
             "op-code {CHANGE_PUBLIC_KEY_OP_CODE:0>8b} is not the change username op-code"
         );
     }
@@ -257,10 +256,7 @@ mod test {
 
         let delete = Request::parse(&request);
         assert!(
-            matches!(
-                delete,
-                Ok(Request::Acc(Account::Delete))
-            ),
+            matches!(delete, Ok(Request::Acc(Account::Delete))),
             "op-code {DELETE_OP_CODE:0>8b} is not the change username op-code"
         );
     }

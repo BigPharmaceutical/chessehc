@@ -1,25 +1,16 @@
-use base64::{alphabet, engine, Engine};
+use base64::Engine;
 use futures_util::{
     stream::{SplitSink, StreamExt},
     SinkExt,
 };
-use tokio::{net::TcpStream, time::Instant};
+use tokio::{net::TcpStream, time::Instant, sync::{broadcast, mpsc}};
 use tokio_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
 
 use crate::{
-    config::CHALLENGE_LENGTH,
+    config::{BASE64_ENGINE, CHALLENGE_LENGTH, GAME_SENDER_CAPACITY},
     request::{Request, Requester},
-    response::{err::mal_req::MalformedRequest, Response},
+    response::{err::mal_req::MalformedRequest, Response}, game::{Broadcast, PlayerMessage, GameMessage},
 };
-
-/// Configuration without padding when encoding and optional padding when decoding
-const BASE64_CONFIG: engine::GeneralPurposeConfig = engine::GeneralPurposeConfig::new()
-    .with_encode_padding(false)
-    .with_decode_padding_mode(engine::DecodePaddingMode::Indifferent);
-
-/// Base64 engine with `BASE64_CONFIG`
-const BASE64_ENGINE: engine::GeneralPurpose =
-    engine::GeneralPurpose::new(&alphabet::STANDARD, BASE64_CONFIG);
 
 pub struct Client<'a> {
     pub peer_address: String,
@@ -27,6 +18,11 @@ pub struct Client<'a> {
     write: &'a mut SplitSink<WebSocketStream<TcpStream>, Message>,
     pub log_in_challenge: Option<(i64, [u8; CHALLENGE_LENGTH], Instant)>,
     pub log_in: Option<i64>,
+    pub game_handle: (mpsc::Sender<GameMessage>, mpsc::Receiver<GameMessage>),
+    pub game: Option<(
+        broadcast::Receiver<Broadcast>,
+        mpsc::Sender<PlayerMessage>,
+    )>,
 }
 
 impl<'a> Client<'a> {
@@ -40,12 +36,14 @@ impl<'a> Client<'a> {
             write,
             log_in_challenge: None,
             log_in: None,
+            game_handle: mpsc::channel(GAME_SENDER_CAPACITY),
+            game: None,
         }
     }
 
     pub async fn send(&mut self, data: Vec<u8>) -> Result<(), ()> {
         self.write.send(Message::Binary(data)).await.map_err(|_| {
-            self.close = false;
+            self.close = true;
         })
     }
 }
@@ -115,7 +113,6 @@ impl<'a, 'b> Client<'a> {
     where
         'a: 'b,
     {
-        println!("{data:?}");
         match Request::parse(data) {
             Ok(request) => {
                 if let Err(err) = request.run(self).await {

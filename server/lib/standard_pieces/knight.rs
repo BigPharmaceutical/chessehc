@@ -5,14 +5,14 @@ use crate::{
     r#move::Move,
 };
 
-use super::{Error, StandardCompatiblePiece};
+use super::{Error, StandardCompatiblePiece, StandardCompatiblePieceSet};
 
 #[derive(Clone, Debug)]
 pub struct Knight(u8);
 
 impl Knight {
     #[must_use]
-    pub fn new(player: u8) -> Box<dyn StandardCompatiblePiece> {
+    pub fn new(player: u8) -> StandardCompatiblePieceSet {
         Box::new(Self(player))
     }
 }
@@ -36,7 +36,7 @@ impl StandardCompatiblePiece for Knight {
 
     fn attacking(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
     ) -> Result<Vec<Coordinate>, super::Error> {
         let mut attacks = Vec::with_capacity(8);
@@ -55,7 +55,7 @@ impl StandardCompatiblePiece for Knight {
 
     fn valid_moves(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
         _turn: u16,
         _n_players: u8,
@@ -97,15 +97,15 @@ impl StandardCompatiblePiece for Knight {
 
     fn mid_move(
         &mut self,
-        _board: &Board<Box<dyn StandardCompatiblePiece>>,
+        _board: &Board<StandardCompatiblePieceSet>,
         _move: &Move,
         _turn: u16,
         _n_players: u8,
-    ) -> Result<(Vec<Delta<Box<dyn StandardCompatiblePiece>>>, u16), Error> {
+    ) -> Result<(Vec<Delta<StandardCompatiblePieceSet>>, u16), Error> {
         Ok((Vec::with_capacity(0), 0))
     }
 
-    fn clone(&self) -> Box<dyn StandardCompatiblePiece> {
+    fn clone(&self) -> StandardCompatiblePieceSet {
         Box::new(Clone::clone(self))
     }
 }

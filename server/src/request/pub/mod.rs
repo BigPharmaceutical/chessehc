@@ -138,7 +138,7 @@ async fn create_new_account<'a, 'b>(
 
 #[cfg(test)]
 mod test {
-    use crate::request::{Request, Requester, r#pub::Public};
+    use crate::request::{r#pub::Public, Request, Requester};
 
     use super::CREATE_ACCOUNT_OP_CODE;
 
@@ -187,10 +187,7 @@ mod test {
 
         let create_account = Request::parse(&request);
         assert!(
-            matches!(
-                create_account,
-                Ok(Request::Pub(Public::CreateAccount(..)))
-            ),
+            matches!(create_account, Ok(Request::Pub(Public::CreateAccount(..)))),
             "op-code {CREATE_ACCOUNT_OP_CODE:0>8b} is not the create account op-code"
         );
     }

@@ -6,7 +6,7 @@ use crate::{
     spot::Spot,
 };
 
-use super::{Bishop, Error, Knight, Queen, Rook, StandardCompatiblePiece};
+use super::{Bishop, Error, Knight, Queen, Rook, StandardCompatiblePiece, StandardCompatiblePieceSet};
 
 #[derive(Clone, Debug)]
 pub struct Pawn {
@@ -19,7 +19,7 @@ pub struct Pawn {
 
 impl Pawn {
     #[must_use]
-    pub fn new(player: u8, direction: i8, upgrade_rank: usize) -> Box<dyn StandardCompatiblePiece> {
+    pub fn new(player: u8, direction: i8, upgrade_rank: usize) -> StandardCompatiblePieceSet {
         Box::new(Self {
             player,
             has_moved: false,
@@ -51,7 +51,7 @@ impl StandardCompatiblePiece for Pawn {
 
     fn attacking(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
     ) -> Result<Vec<Coordinate>, Error> {
         let mut attacks = Vec::with_capacity(2);
@@ -66,7 +66,7 @@ impl StandardCompatiblePiece for Pawn {
 
     fn valid_moves(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
         turn: u16,
         n_players: u8,
@@ -141,11 +141,11 @@ impl StandardCompatiblePiece for Pawn {
 
     fn mid_move(
         &mut self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         r#move: &Move,
         turn: u16,
         n_players_in_play: u8,
-    ) -> Result<(Vec<Delta<Box<dyn StandardCompatiblePiece>>>, u16), Error> {
+    ) -> Result<(Vec<Delta<StandardCompatiblePieceSet>>, u16), Error> {
         let delta = CoordinateDelta(
             isize::try_from(r#move.to.0).expect("move too large")
                 - isize::try_from(r#move.from.0).expect("move too large"),
@@ -207,7 +207,7 @@ impl StandardCompatiblePiece for Pawn {
         Ok((deltas, points))
     }
 
-    fn clone(&self) -> Box<dyn StandardCompatiblePiece> {
+    fn clone(&self) -> StandardCompatiblePieceSet {
         Box::new(Clone::clone(self))
     }
 

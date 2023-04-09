@@ -32,7 +32,7 @@ where
 pub enum Request<'a> {
     Pub(Public<'a>),
     Acc(Account<'a>),
-    Game(Game),
+    Game(Game<'a>),
     IG(InGame),
 }
 

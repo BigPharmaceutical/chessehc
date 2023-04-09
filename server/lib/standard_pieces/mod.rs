@@ -14,7 +14,11 @@ use crate::{
     r#move::Move,
 };
 
-pub type Delta = delta::Delta<Box<dyn StandardCompatiblePiece>>;
+#[cfg(not(feature = "standard_pieces_send"))]
+pub type StandardCompatiblePieceSet = Box<dyn StandardCompatiblePiece>;
+#[cfg(feature = "standard_pieces_send")]
+pub type StandardCompatiblePieceSet = Box<dyn StandardCompatiblePiece + Send>;
+pub type Delta = delta::Delta<StandardCompatiblePieceSet>;
 
 pub trait StandardCompatiblePiece
 where
@@ -34,7 +38,7 @@ where
     /// [`Error`]
     fn is_in_check(
         &self,
-        _board: &Board<Box<dyn StandardCompatiblePiece>>,
+        _board: &Board<StandardCompatiblePieceSet>,
         _position: &Coordinate,
     ) -> Result<Option<bool>, Error> {
         Ok(None)
@@ -47,7 +51,7 @@ where
     /// [`Error`]
     fn valid_moves(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
         turn: u16,
         n_players: u8,
@@ -59,7 +63,7 @@ where
     /// [`Error`]
     fn attacking(
         &self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         from: &Coordinate,
     ) -> Result<Vec<Coordinate>, Error>;
 
@@ -69,14 +73,14 @@ where
     /// [`Error`]
     fn mid_move(
         &mut self,
-        board: &Board<Box<dyn StandardCompatiblePiece>>,
+        board: &Board<StandardCompatiblePieceSet>,
         r#move: &Move,
         turn: u16,
         n_players: u8,
     ) -> Result<(Vec<Delta>, u16), Error>;
 
     // Custom
-    fn clone(&self) -> Box<dyn StandardCompatiblePiece>;
+    fn clone(&self) -> StandardCompatiblePieceSet;
 
     fn can_en_passant(
         &self,
@@ -94,13 +98,13 @@ where
     fn mid_castle(&mut self) {}
 }
 
-impl Clone for Box<dyn StandardCompatiblePiece> {
+impl Clone for StandardCompatiblePieceSet {
     fn clone(&self) -> Self {
         StandardCompatiblePiece::clone(&**self)
     }
 }
 
-impl PieceSet for Box<dyn StandardCompatiblePiece> {
+impl PieceSet for StandardCompatiblePieceSet {
     type Error = Error;
     type PieceId = u8;
 
@@ -156,7 +160,7 @@ impl PieceSet for Box<dyn StandardCompatiblePiece> {
 #[derive(Debug)]
 pub enum Error {
     PositionOrDeltaTooLarge(usize, TryFromIntError),
-    BoardError(Box<crate::error::Error<Box<dyn StandardCompatiblePiece>>>),
+    BoardError(Box<crate::error::Error<StandardCompatiblePieceSet>>),
     IntermediatePositionNotOnBoard(Coordinate, CoordinateDelta),
     InvalidPieceId(u8),
 }

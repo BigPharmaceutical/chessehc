@@ -102,13 +102,14 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chessehc_server"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "base64 0.21.0",
  "dotenv",
  "ed25519-dalek",
  "futures-util",
  "lazy_static",
+ "nohash-hasher",
  "rand",
  "regex",
  "sqlx",
@@ -689,6 +690,12 @@ dependencies = [
  "security-framework-sys",
  "tempfile",
 ]
+
+[[package]]
+name = "nohash-hasher"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 
 [[package]]
 name = "nom"
