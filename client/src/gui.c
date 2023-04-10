@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
-struct GuiDataContainerType* createGuiDataContainer(SDL_Rect* param);
-void disposeGuiDataContainer(struct GuiDataContainerType* data);
+struct GuiDataContainer* createGuiDataContainer(SDL_Rect* param);
+void disposeGuiDataContainer(struct GuiDataContainer* data);
 void drawGuiElementContainer(struct GuiElement* text, SDL_Surface* surface);
 SDL_Surface* guiContainerSurface(struct GuiElement* container);
 
@@ -18,12 +18,12 @@ void* createGuiDataTextfield(char param);
 void disposeGuiDataTextfield(void* data);
 void drawGuiElementTextfield(struct GuiElement* text, SDL_Surface* surface);
 
-struct GuiDataButtonType* createGuiDataButton(struct InputButtonData* param);
-void disposeGuiDataButton(struct GuiDataButtonType* data);
+struct GuiDataButton* createGuiDataButton(struct GuiInfoButton* param);
+void disposeGuiDataButton(struct GuiDataButton* data);
 void drawGuiElementButton(struct GuiElement* element, SDL_Surface* surface);
 
-struct GuiDataProxyType* createGuiDataProxy(struct GuiProxyData* param);
-void disposeGuiDataProxy(struct GuiDataProxyType* data);
+struct GuiDataProxy* createGuiDataProxy(struct GuiInfoProxy* param);
+void disposeGuiDataProxy(struct GuiDataProxy* data);
 void drawGuiElementProxy(struct GuiElement* element, SDL_Surface* surface);
 
 
@@ -51,7 +51,7 @@ struct GuiElement* createGuiElement(SDL_Rect area, char flags, char type, void* 
 		} break;
 		
 		case GUI_ELEMENT_TYPE_BUTTON: {
-			struct GuiDataButtonType* data = createGuiDataButton(param);
+			struct GuiDataButton* data = createGuiDataButton(param);
 			data->inputField->guiElementFlags = &element->flags;
 			element->data = data;
 		} break;
@@ -116,8 +116,8 @@ void drawGuiElement(struct GuiElement* element, SDL_Surface* surface) {
 
 //////// Container ////////
 
-struct GuiDataContainerType* createGuiDataContainer(SDL_Rect* param) {
-	struct GuiDataContainerType* new = malloc(sizeof(struct GuiDataContainerType));
+struct GuiDataContainer* createGuiDataContainer(SDL_Rect* param) {
+	struct GuiDataContainer* new = malloc(sizeof(struct GuiDataContainer));
 	new->surface = SDL_CreateRGBSurface(0, param->w, param->h, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 	SDL_SetSurfaceBlendMode(new->surface, SDL_BLENDMODE_BLEND);
 	new->children = 0;
@@ -130,7 +130,7 @@ struct GuiDataContainerType* createGuiDataContainer(SDL_Rect* param) {
 	return new;
 }
 
-void disposeGuiDataContainer(struct GuiDataContainerType* data) {
+void disposeGuiDataContainer(struct GuiDataContainer* data) {
 	SDL_FreeSurface(data->surface);
 	free(data->surface);
 	linkedListDispose(data->children);
@@ -138,7 +138,7 @@ void disposeGuiDataContainer(struct GuiDataContainerType* data) {
 }
 
 void drawGuiElementContainer(struct GuiElement* element, SDL_Surface* surface) {
-	struct GuiDataContainerType* data = element->data;
+	struct GuiDataContainer* data = element->data;
 	SDL_Rect source;
 	source.x = 0;
 	source.y = 0;
@@ -149,12 +149,12 @@ void drawGuiElementContainer(struct GuiElement* element, SDL_Surface* surface) {
 }
 
 void guiContainerLink(struct GuiElement* container, struct GuiElement* child) {
-	struct GuiDataContainerType* data = container->data;
+	struct GuiDataContainer* data = container->data;
 	data->children = linkedListPrepend(data->children, child);
 }
 
 void guiContainerUnlink(struct GuiElement* container, struct GuiElement* child) {
-	struct GuiDataContainerType* data = container->data;
+	struct GuiDataContainer* data = container->data;
 	struct LinkedList* previous = 0;
 	struct LinkedList* current = data->children;
 	
@@ -176,7 +176,7 @@ void guiContainerUnlink(struct GuiElement* container, struct GuiElement* child) 
 }
 
 void guiContainerDye(struct GuiElement* container, struct PixelRGB color) {
-	((struct GuiDataContainerType*) container->data)->color = color;
+	((struct GuiDataContainer*) container->data)->color = color;
 }
 
 char isElementTreeInvalidated(struct GuiElement* element) {
@@ -185,7 +185,7 @@ char isElementTreeInvalidated(struct GuiElement* element) {
 	}
 	
 	if (element->type == GUI_ELEMENT_TYPE_CONTAINER) {
-		struct GuiDataContainerType* data = element->data;
+		struct GuiDataContainer* data = element->data;
 		struct LinkedList* target = data->children;
 		while (target) {
 			if (isElementTreeInvalidated(target->value)) {
@@ -200,7 +200,7 @@ char isElementTreeInvalidated(struct GuiElement* element) {
 
 
 SDL_Surface* guiContainerSurface(struct GuiElement* container) {
-	struct GuiDataContainerType* data = container->data;
+	struct GuiDataContainer* data = container->data;
 
 	if (isElementTreeInvalidated(container)) {
 		struct LinkedList* target = data->children;
@@ -246,7 +246,7 @@ void disposeGuiDataTextfield(void* data) {
 
 void drawGuiElementTextfield(struct GuiElement* element, SDL_Surface* surface) {
 	struct InputField* field = element->data;
-	struct InputTextfieldData* fieldData = field->data;
+	struct InputDataTextfield* fieldData = field->data;
 	if (field == getInputFocused()) {
 		SDL_Rect backRect;
 		backRect.x = element->position.x - 1;
@@ -261,8 +261,8 @@ void drawGuiElementTextfield(struct GuiElement* element, SDL_Surface* surface) {
 
 //////// Button ////////
 
-struct GuiDataButtonType* createGuiDataButton(struct InputButtonData* param) {
-	struct GuiDataButtonType* data = malloc(sizeof(struct GuiDataButtonType));
+struct GuiDataButton* createGuiDataButton(struct GuiInfoButton* param) {
+	struct GuiDataButton* data = malloc(sizeof(struct GuiDataButton));
 	data->inputField = createInputButton(param->onPress, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
 
 	unsigned char length = 0;
@@ -272,13 +272,13 @@ struct GuiDataButtonType* createGuiDataButton(struct InputButtonData* param) {
 	return data;
 }
 
-void disposeGuiDataButton(struct GuiDataButtonType* data) {
+void disposeGuiDataButton(struct GuiDataButton* data) {
 	disposeOneInputByField(data->inputField);
 	free(data);
 }
 
 void drawGuiElementButton(struct GuiElement* element, SDL_Surface* surface) {
-	struct GuiDataButtonType* data = element->data;
+	struct GuiDataButton* data = element->data;
 	if (data->inputField == getInputFocused()) {
 		unsigned char length = 0;
 		for(;(data->text)[length];length++);
@@ -294,8 +294,8 @@ void drawGuiElementButton(struct GuiElement* element, SDL_Surface* surface) {
 
 //////// Proxy ////////
 
-struct GuiDataProxyType* createGuiDataProxy(struct GuiProxyData* param) {
-	struct GuiDataProxyType* data = malloc(sizeof(struct GuiDataProxyType));
+struct GuiDataProxy* createGuiDataProxy(struct GuiInfoProxy* param) {
+	struct GuiDataProxy* data = malloc(sizeof(struct GuiDataProxy));
 	data->proxy = param;
 	if (param->onCreate) {
 		data->data = param->onCreate(param);
@@ -303,7 +303,7 @@ struct GuiDataProxyType* createGuiDataProxy(struct GuiProxyData* param) {
 	return data;
 }
 
-void disposeGuiDataProxy(struct GuiDataProxyType* data) {
+void disposeGuiDataProxy(struct GuiDataProxy* data) {
 	if (data->proxy->onDispose) {
 		data->proxy->onDispose(data->data);
 	}
@@ -312,7 +312,7 @@ void disposeGuiDataProxy(struct GuiDataProxyType* data) {
 }
 
 void drawGuiElementProxy(struct GuiElement* element, SDL_Surface* surface) {
-	struct GuiDataProxyType* data = element->data;
+	struct GuiDataProxy* data = element->data;
 	if (data->proxy->onDraw) {
 		data->proxy->onDraw(element, surface);
 	}

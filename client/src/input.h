@@ -18,10 +18,15 @@ struct InputField {
 	char* guiElementFlags;
 };
 
-struct InputProxyData {
+struct InputDataProxy {
 	void (*onKeyPress)(struct InputField* field, char key);
 	void (*onDispose)(struct InputField* field);
 	void* data;
+};
+
+struct InputDataTextfield {
+	char* chars;
+	unsigned char length;
 };
 
 void initInput();

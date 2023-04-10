@@ -26,7 +26,7 @@ void handleInputUnselected(struct InputField* field) {
 }
 
 void handleInputText(struct InputField* field, char key) {
-	struct InputTextfieldData* text = field->data;
+	struct InputDataTextfield* text = field->data;
 	unsigned char nextIndex = 0;
 	while (text->chars[nextIndex]) {
 		nextIndex++;
@@ -54,7 +54,7 @@ void handleInputButton(struct InputField* field, char key) {
 }
 
 void handleInputProxy(struct InputField* field, char key) {
-	struct InputProxyData* pData = field->data;
+	struct InputDataProxy* pData = field->data;
 	pData->onKeyPress(field, key);
 }
 
@@ -152,7 +152,7 @@ void inputLinkFlags(struct InputField* field, char* flagPtr) {
 
 struct InputField* createInputText(unsigned char length, char flags) {
 	struct InputField* field = createInputOfType(flags, INPUT_TYPE_TEXT);
-	struct InputTextfieldData* data = malloc(sizeof(struct InputTextfieldData));
+	struct InputDataTextfield* data = malloc(sizeof(struct InputDataTextfield));
 	data->length = length;	
 	data->chars = calloc(length + 1, sizeof(char));
 	field->data = data;
@@ -169,7 +169,7 @@ struct InputField* createInputButton(void (*onPress)(struct InputField*), char f
 
 struct InputField* createInputProxy(void (*onKeyPress)(struct InputField* field, char key), void (*onDispose)(struct InputField* field), void* data, char flags) {
 	struct InputField* field = createInputOfType(flags, INPUT_TYPE_PROXY);
-	struct InputProxyData* pData = malloc(sizeof(struct InputProxyData));
+	struct InputDataProxy* pData = malloc(sizeof(struct InputDataProxy));
 	pData->onKeyPress = onKeyPress;
 	pData->onDispose = onDispose;
 	pData->data = data;
@@ -179,14 +179,14 @@ struct InputField* createInputProxy(void (*onKeyPress)(struct InputField* field,
 
 
 void disposeInputProxy(struct InputField* target) {
-	struct InputProxyData* pData = target->data;
+	struct InputDataProxy* pData = target->data;
 	pData->onDispose(target);
 }
 
 void disposeInputField(struct InputField* target) {
 	switch (target->type) {
 		case (INPUT_TYPE_TEXT): {
-			struct InputTextfieldData* data = target->data;
+			struct InputDataTextfield* data = target->data;
 			free(data->chars);
 			free(data);
 		} break;

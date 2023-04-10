@@ -3,6 +3,7 @@
 #include "input.h"
 #include "game.h"
 #include "net.h"
+#include "gui.h"
 
 struct GuiElement* currentContainer;
 
@@ -14,7 +15,7 @@ struct GuiElement* inputCode;
 
 void buttonPlayPressed(struct InputField* field) {
 	struct InputField* ipField = inputIp->data;
-	struct InputTextfieldData* data = ipField->data;
+	struct InputDataTextfield* data = ipField->data;
 	netConnect(data->chars);
 }
 
@@ -72,7 +73,7 @@ void initContent() {
 	r.y = 360;
 	r.w = 40;
 	r.h = 60;
-	struct InputButtonData bdJoin;
+	struct GuiInfoButton bdJoin;
 	bdJoin.text = "PLAY";
 	bdJoin.onPress = &buttonPlayPressed;
 	guiContainerLink(inpContainer, createGuiElement(r, 0, GUI_ELEMENT_TYPE_BUTTON, &bdJoin));

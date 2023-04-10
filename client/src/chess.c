@@ -17,7 +17,7 @@ void initChess() {
 }
 
 void boardInputKey(struct InputField* field, char key) {
-	struct ChessBoardInputData* data = ((struct InputProxyData*)field->data)->data;
+	struct ChessBoardInputData* data = ((struct InputDataProxy*)field->data)->data;
 
 	switch (key) {
 		case (SDLK_h):
@@ -59,7 +59,7 @@ struct ChessBoard* createChessBoard(unsigned short height) {
 }
 
 void drawChessBoard(struct ChessBoard* board, SDL_Surface* surface) {
-	struct ChessBoardInputData* inputData = ((struct InputProxyData*)board->inputField->data)->data;
+	struct ChessBoardInputData* inputData = ((struct InputDataProxy*)board->inputField->data)->data;
 	
 	SDL_Rect rect;
 	rect.w = 48;

@@ -20,23 +20,23 @@ struct GuiElement {
 	void* data;
 };
 
-struct InputTextfieldData {
-	char* chars;
-	unsigned char length;
-};
-
-struct InputButtonData {
+struct GuiInfoButton {
 	char* text;
 	void (*onPress)(struct InputField*);
 };
 
-struct GuiProxyData {
-	void* (*onCreate)(struct GuiProxyData*);
-	void (*onDispose)(struct GuiProxyData*);
+struct GuiDataProxy {
+	struct GuiInfoProxy* proxy;
+	void* data;
+};
+
+struct GuiInfoProxy {
+	void* (*onCreate)(struct GuiInfoProxy*);
+	void (*onDispose)(struct GuiDataProxy*);
 	void (*onDraw)(struct GuiElement*, SDL_Surface*); 
 };
 
-struct GuiDataContainerType {
+struct GuiDataContainer {
 	struct LinkedList* children;
 	SDL_Surface* surface;
 	unsigned short w;
@@ -44,14 +44,9 @@ struct GuiDataContainerType {
 	struct PixelRGB color;
 };
 
-struct GuiDataButtonType {
+struct GuiDataButton {
 	char* text;
 	struct InputField* inputField;
-};
-
-struct GuiDataProxyType {
-	struct GuiProxyData* proxy;
-	void* data;
 };
 
 struct GuiElement* createGuiElement(SDL_Rect position, char flags, char type, void* data);

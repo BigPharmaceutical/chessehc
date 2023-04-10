@@ -8,11 +8,11 @@ void initGame() {
 
 }
 
-void gameGuiDispose(struct GuiProxyData* data) {
+void gameGuiDispose(struct GuiDataProxy* data) {
 }
 
 void gameGuiDraw(struct GuiElement* element, SDL_Surface* surface) {	
-	struct ChessGame* game = ((struct GuiDataProxyType*) element->data)->data;
+	struct ChessGame* game = ((struct GuiDataProxy*) element->data)->data;
 	drawChessBoard(game->board, surface);
 }	
 
@@ -21,12 +21,12 @@ struct ChessGame* createGame() {
 	game->players = 0;
 	game->board = createChessBoard(32);
 
-	struct GuiProxyData* proxyData = malloc(sizeof(struct GuiProxyData));
+	struct GuiInfoProxy* proxyData = malloc(sizeof(struct GuiInfoProxy));
 	proxyData->onCreate = 0;
 	proxyData->onDispose = &gameGuiDispose;
 	proxyData->onDraw = &gameGuiDraw;
 	game->guiProxy = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_PROXY, proxyData);
-	((struct GuiDataProxyType*) game->guiProxy->data)->data = game;
+	((struct GuiDataProxy*) game->guiProxy->data)->data = game;
 	game->board->inputField->guiElementFlags = &game->guiProxy->flags;
 	
 	return game;
