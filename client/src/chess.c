@@ -53,7 +53,7 @@ struct ChessBoard* createChessBoard(unsigned short height) {
 	bData->selectX = 0;
 	bData->selectY = 0;
 
-	board->inputField = createInputProxy(*boardInputKey, *boardInputDispose, bData, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
+	board->inputField = createInputProxy(*boardInputKey, *boardInputDispose, bData, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE_WHEN_VISIBLE);
 
 	return board;
 }

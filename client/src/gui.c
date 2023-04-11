@@ -114,6 +114,42 @@ void drawGuiElement(struct GuiElement* element, SDL_Surface* surface) {
 	element->flags &= ~GUI_ELEMENT_FLAG_INVALIDATED;
 }
 
+void guiTreeToggleInputs(struct GuiElement* tree, char newStatus) {
+	struct InputField* inpf;
+	switch (tree->type) {
+		case (GUI_ELEMENT_TYPE_CONTAINER): {
+			struct LinkedList* e = ((struct GuiDataContainer*)tree->data)->children;
+			while (e) {
+				guiTreeToggleInputs(e->value, newStatus);
+				e = e->next;
+			}
+		} break;
+		case (GUI_ELEMENT_TYPE_TEXT):
+			break;
+		case (GUI_ELEMENT_TYPE_PROXY):
+			((struct GuiDataProxy*)tree->data)->proxy->toggleInputs(tree, newStatus);
+			break;
+		case (GUI_ELEMENT_TYPE_TEXTFIELD):
+			inpf = tree->data;
+			goto toggleField;
+		case (GUI_ELEMENT_TYPE_BUTTON):
+			inpf = ((struct GuiDataButton*)tree->data)->inputField;
+			goto toggleField;
+		toggleField:
+			if (inpf->flags & INPUT_FLAGS_ENABLED && inpf->flags & INPUT_FLAGS_SELECTABLE_WHEN_VISIBLE) {
+				inpf->flags ^= (inpf->flags & INPUT_FLAGS_SELECTABLE) ^ (INPUT_FLAGS_SELECTABLE * newStatus);
+			}
+			break;
+	}
+}
+
+struct GuiElement* guiSwitchInputs(struct GuiElement* from, struct GuiElement* to) {
+	guiTreeToggleInputs(from, 0);
+	guiTreeToggleInputs(to, 1);
+	inputFixInvalidSelection();
+	return to;
+}
+
 //////// Container ////////
 
 struct GuiDataContainer* createGuiDataContainer(SDL_Rect* param) {
@@ -237,7 +273,7 @@ void drawGuiElementText(struct GuiElement* element, SDL_Surface* surface) {
 //////// Text Field ////////
 
 void* createGuiDataTextfield(char param) {
-	return createInputText(param, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
+	return createInputText(param, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE_WHEN_VISIBLE);
 }
 
 void disposeGuiDataTextfield(void* data) {
@@ -263,7 +299,7 @@ void drawGuiElementTextfield(struct GuiElement* element, SDL_Surface* surface) {
 
 struct GuiDataButton* createGuiDataButton(struct GuiInfoButton* param) {
 	struct GuiDataButton* data = malloc(sizeof(struct GuiDataButton));
-	data->inputField = createInputButton(param->onPress, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE);
+	data->inputField = createInputButton(param->onPress, INPUT_FLAGS_ENABLED | INPUT_FLAGS_SELECTABLE_WHEN_VISIBLE);
 
 	unsigned char length = 0;
 	while (param->text[length++] != '\0') {}

@@ -34,6 +34,7 @@ struct GuiInfoProxy {
 	void* (*onCreate)(struct GuiInfoProxy*);
 	void (*onDispose)(struct GuiDataProxy*);
 	void (*onDraw)(struct GuiElement*, SDL_Surface*); 
+	char (*toggleInputs)(struct GuiElement* element, char newStatus);
 };
 
 struct GuiDataContainer {
@@ -60,5 +61,9 @@ void guiContainerUnlink(struct GuiElement* container, struct GuiElement* child);
 void guiContainerDye(struct GuiElement* container, struct PixelRGB color);
 
 void drawGuiElement(struct GuiElement* element, SDL_Surface* surface);
+
+void guiTreeToggleInputs(struct GuiElement* tree, char newStatus);
+
+struct GuiElement* guiSwitchInputs(struct GuiElement* from, struct GuiElement* to);
 
 #endif

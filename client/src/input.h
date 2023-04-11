@@ -5,6 +5,7 @@
 
 #define INPUT_FLAGS_ENABLED 1
 #define INPUT_FLAGS_SELECTABLE 2
+#define INPUT_FLAGS_SELECTABLE_WHEN_VISIBLE 4
 
 #define INPUT_TYPE_TEXT 1
 #define INPUT_TYPE_BUTTON 2
@@ -34,6 +35,8 @@ void initInput();
 struct InputField* getInputFocused();
 
 void handleInput(char key);
+
+void inputFixInvalidSelection();
 
 struct InputField* createInputText(unsigned char length, char flags);
 

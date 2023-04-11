@@ -4,25 +4,35 @@
 #include "game.h"
 #include "net.h"
 #include "gui.h"
+#include "persistent.h"
 
 struct GuiElement* currentContainer;
 
+struct GuiElement* containerNewAccount;
 struct GuiElement* containerMenu;
 struct GuiElement* containerGame;
 
 struct GuiElement* inputIp;
 struct GuiElement* inputCode;
+struct GuiElement* inputDisplayName;
+
+void buttonCreateAccountPressed(struct InputField* field) {
+	currentContainer = guiSwitchInputs(currentContainer, containerMenu);
+}
 
 void buttonPlayPressed(struct InputField* field) {
 	struct InputField* ipField = inputIp->data;
 	struct InputDataTextfield* data = ipField->data;
 	netConnect(data->chars);
+
+	if (!getAccountId()) {
+		currentContainer = guiSwitchInputs(currentContainer, containerNewAccount);
+	}
 }
 
 void initContent() {
 	SDL_Rect r;
 	struct PixelRGB c;
-
 
 	// // Menu Container
 	containerMenu = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
@@ -41,7 +51,6 @@ void initContent() {
 	// TAB hint
 	r.x = 5;
 	r.y = 5;
-	r.w = 150;
 	r.h = 16;
 	r.w = 8;
 	guiContainerLink(inpContainer, createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXT, "[TAB] to select"));
@@ -78,7 +87,37 @@ void initContent() {
 	bdJoin.onPress = &buttonPlayPressed;
 	guiContainerLink(inpContainer, createGuiElement(r, 0, GUI_ELEMENT_TYPE_BUTTON, &bdJoin));
 
+
+	// We only create the new account GUI if we need to
+	if (!getAccountId()) {
+		// // New Account Menu Container
+		containerNewAccount = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_CONTAINER, 0);
+		c.r = 0;
+		c.g = 255;
+		c.b = 0;
+		guiContainerDye(containerNewAccount, c);
+		// Big Prompt	
+		r.x = 32;
+		r.y = 32;
+		r.w = 32;
+		r.h = 32;
+		guiContainerLink(containerNewAccount, createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXT, "Enter Name"));
+		r.x = 40;
+		r.y = 80;
+		r.w = 24;
+		r.h = 36;
+		inputDisplayName = createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 16);
+		guiContainerLink(containerNewAccount, inputDisplayName);
+		r.x = 32;
+		r.y = 128;
+		struct GuiInfoButton b;
+		b.text = "Create Account";
+		b.onPress = *buttonCreateAccountPressed;
+		guiContainerLink(containerNewAccount, createGuiElement(r, 0, GUI_ELEMENT_TYPE_BUTTON, &b));
+	}
 	currentContainer = containerMenu;
+	guiTreeToggleInputs(currentContainer, 1);
+	inputFixInvalidSelection();
 }
 
 void disposeContent() {

@@ -58,15 +58,13 @@ void handleInputProxy(struct InputField* field, char key) {
 	pData->onKeyPress(field, key);
 }
 
-void handleInput(char key) {
-	switch (key) {
-		case (SDLK_TAB): {
+void inputAdvanceSelection() {
 			struct LinkedList* dest;
  			if (!inputFocused) {
 				if (inputFieldsHead) {
 					dest = inputFieldsHead;
 				} else {
-					break;
+					return;
 				}
 			} else {
 				dest = inputFocused->next;
@@ -78,7 +76,8 @@ void handleInput(char key) {
 						break;
 					}
 				}
-				if (((struct InputField*)dest->value)->flags & INPUT_FLAGS_SELECTABLE) {
+				struct InputField* destfield = dest->value;
+				if (destfield->flags & INPUT_FLAGS_SELECTABLE) {
 					break;
 				}
 				dest = dest->next;
@@ -98,6 +97,12 @@ void handleInput(char key) {
 			}
 
 			inputFocused = dest;
+}
+
+void handleInput(char key) {
+	switch (key) {
+		case (SDLK_TAB): {
+			inputAdvanceSelection();
 		} break;
 
 		case (SDLK_ESCAPE): {
@@ -128,6 +133,12 @@ void handleInput(char key) {
 				*focusedField->guiElementFlags |= GUI_ELEMENT_FLAG_INVALIDATED;
 			}
 		} break;
+	}
+}
+
+void inputFixInvalidSelection() {
+	if (!inputFocused || !(((struct InputField*)inputFocused->value)->flags & INPUT_FLAGS_SELECTABLE)) {
+		inputAdvanceSelection();
 	}
 }
 

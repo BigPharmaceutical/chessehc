@@ -20,6 +20,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
+#include "persistent.h"
 #include "graphics.h"
 #include "font.h"
 #include "input.h"

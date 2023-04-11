@@ -25,6 +25,8 @@ struct ChessGame* createGame() {
 	proxyData->onCreate = 0;
 	proxyData->onDispose = &gameGuiDispose;
 	proxyData->onDraw = &gameGuiDraw;
+	// todo
+	proxyData->toggleInputs = 0;
 	game->guiProxy = createGuiElement(*fullRect, 0, GUI_ELEMENT_TYPE_PROXY, proxyData);
 	((struct GuiDataProxy*) game->guiProxy->data)->data = game;
 	game->board->inputField->guiElementFlags = &game->guiProxy->flags;

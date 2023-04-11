@@ -1,19 +1,33 @@
 #include "net.h"
+#include "persistent.h"
+
+/////////////////////////////////
+/// TODO safety /////////////////
+/////////////////////////////////
+
+
 
 void netResponse(unsigned char opcode, void* data) {
-	//todo
+	unsigned int len = 0;
 	switch (opcode) {
 		case (NET_RES_OK_USERNAME):
+			for(;((char*)data)[len];len++);
 			break;
 		case (NET_RES_OK_ACCOUNT_ID):
+			len = 8;
+			setAccountId(*(long long*) data);
 			break;
 		case (NET_RES_OK_LOG_IN_CHALLENGE):
+			
 			break;
 		case (NET_RES_OK_CONFIRMATION):
+			len = 1;
 			break;
 		case (NET_RES_OK_ACCOUNT):
+			//todo
 			break;
 		case (NET_RES_OK_GAME_TOKEN):
+			for(;((char*)data)[len];len++);
 			break;
 		default:
 			// I will deal with this later
@@ -45,7 +59,6 @@ void netHandler(struct mg_connection* connection, int event, void* eventData, vo
 struct NetSession* netConnect(char* url) {
 	struct NetSession* session = malloc(sizeof(struct NetSession));
 	session->finished = 0;
-
 	mg_mgr_init(&session->eventManager);
 	mg_log_set(MG_LL_DEBUG);
 	session->connection = mg_ws_connect(&session->eventManager, url, &netHandler, &session->finished, 0);
@@ -63,7 +76,7 @@ void netRequest(struct NetSession* session, unsigned char operation, void* data)
 	unsigned int len = 0;
 	switch (operation) {
 		case (NET_REQ_GET_USERNAME):
-			len = 4;
+			len = 8;
 			break;
 		case (NET_REQ_LOOKUP_USERNAME):
 			for(;((char*)data)[len];len++);
@@ -73,7 +86,7 @@ void netRequest(struct NetSession* session, unsigned char operation, void* data)
 			len += 33;
 			break;
 		case (NET_REQ_REQUEST_CHALLENGE):
-			len = 4;
+			len = 8;
 			break;
 		case (NET_REQ_CHALLENGE_RESPONSE):
 			len = 64;
@@ -99,4 +112,18 @@ void netRequest(struct NetSession* session, unsigned char operation, void* data)
 	memcpy(sendData + 1, data, len);
 
 	mg_ws_send(session->connection, data, len + 1, WEBSOCKET_OP_BINARY);
-}	
+	while (session->connection && !session->finished) mg_mgr_poll(&session->eventManager, 50);
+}
+
+void netCreateAccount(struct NetSession* session, char* username) {
+	// Should the string be null-terminated?
+	unsigned short len = 0;
+	for(;username[len];len++);
+	unsigned char data[len + 33];
+	memcpy(data, username, len);
+	memcpy(data + len + 1, getKeyPublic(), 32);
+	netRequest(session, NET_REQ_CREATE_ACCOUNT, data);
+	// we will ASSERT that it worked :)
+	// Then we need the username
+	netRequest(session, NET_REQ_LOOKUP_USERNAME, username);
+}
