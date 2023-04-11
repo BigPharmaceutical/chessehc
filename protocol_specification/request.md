@@ -61,7 +61,7 @@ Data: username (string), *null*, public key (32 bytes)
 ### Request Challenge
 
 Op-code: `00110000`  
-Data: username (i64)  
+Data: account ID (i64)  
 [Response](./response.md#log-in-challenge)  
 [Error](./response.md#logged-in)  
 [Error](./response.md#unknown-username)
