@@ -18,4 +18,4 @@ clean:
 	rm -f ./chessehc
 	rm -f ./font/fontblob.c
 	rm -rf ./objs
-
+	rm -f ./chessehc.key

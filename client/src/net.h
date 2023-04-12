@@ -42,15 +42,23 @@
 #define NET_RES_ERR_MALFORMED_BASE64 0b11110000
 
 
+struct NetSessionResponse {
+	void* data;
+	char finished;
+};
+
 struct NetSession {
 	struct mg_mgr eventManager;
 	struct mg_connection* connection;
-	char finished;
+	struct NetSessionResponse resp;
 };
 
 struct NetSession* netConnect(char* url);
 
 void netDispose(struct NetSession* session);
 
-void netRequest(struct NetSession* session, unsigned char operation, void* data);
+void* netRequest(struct NetSession* session, unsigned char operation, void* data, void (*responseHandler)(void*));
+
+void netCreateAccount(struct NetSession* session, char* username);
+
 #endif

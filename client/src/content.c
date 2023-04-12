@@ -7,6 +7,7 @@
 #include "persistent.h"
 
 struct GuiElement* currentContainer;
+struct NetSession* netSession;
 
 struct GuiElement* containerNewAccount;
 struct GuiElement* containerMenu;
@@ -14,16 +15,19 @@ struct GuiElement* containerGame;
 
 struct GuiElement* inputIp;
 struct GuiElement* inputCode;
-struct GuiElement* inputDisplayName;
+struct GuiElement* inputUsername;
 
 void buttonCreateAccountPressed(struct InputField* field) {
+	struct InputField* usernameField = inputUsername->data;
+	struct InputDataTextfield* data = usernameField->data;
+	netCreateAccount(netSession, data->chars);
 	currentContainer = guiSwitchInputs(currentContainer, containerMenu);
 }
 
 void buttonPlayPressed(struct InputField* field) {
 	struct InputField* ipField = inputIp->data;
 	struct InputDataTextfield* data = ipField->data;
-	netConnect(data->chars);
+	netSession = netConnect(data->chars);
 
 	if (!getAccountId()) {
 		currentContainer = guiSwitchInputs(currentContainer, containerNewAccount);
@@ -70,13 +74,6 @@ void initContent() {
 	r.x = 190;
 	inputCode = createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 6);
 	guiContainerLink(inpContainer, inputCode);
-	// Name input
-	r.x = 60;
-	r.y = 260;
-	guiContainerLink(containerMenu, createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXT, "Name:"));
-	r.x = 190;
-	inputCode = createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 16);
-	guiContainerLink(inpContainer, inputCode);
 	// Join button
 	r.x = 220;
 	r.y = 360;
@@ -106,8 +103,8 @@ void initContent() {
 		r.y = 80;
 		r.w = 24;
 		r.h = 36;
-		inputDisplayName = createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 16);
-		guiContainerLink(containerNewAccount, inputDisplayName);
+		inputUsername = createGuiElement(r, 0, GUI_ELEMENT_TYPE_TEXTFIELD, (void*) 16);
+		guiContainerLink(containerNewAccount, inputUsername);
 		r.x = 32;
 		r.y = 128;
 		struct GuiInfoButton b;

@@ -29,16 +29,12 @@
 
 char mainExit = 0;
 
-void querty(){
-	mainExit = mainExit | 0;
-}
-
 int main(int argc, char** args){
+	initPersistence();
 	initGraphics();
 	initFont();
 	initInput();
 	initContent();
-	querty();
 	while (!mainExit) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -63,9 +59,7 @@ int main(int argc, char** args){
 			}
 		}
 		drawGuiElement(currentContainer, windowSurface);
-		//SDL_BlitSurface(guiContainerSurface(currentContainer), fullRect, drawSurface, fullRect); 
 		graphicsRender();
-		querty();
 	}
 
 	disposeGraphics();
