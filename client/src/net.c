@@ -7,14 +7,15 @@
 
 void pleaseBreakpoint() {}
 
-void netResponse(unsigned char opcode, void* data) {
+unsigned int netResponse(unsigned char opcode, void* data) {
 	unsigned int len = 0;
 	switch (opcode) {
 		case (NET_RES_OK_USERNAME):
 			for(;((char*)data)[len];len++);
 			break;
 		case (NET_RES_OK_ACCOUNT_ID):
-			len = 8;
+			len = sizeof(long long);
+			// it's big endian, but it doesn't matter because it gets rotated back anyway.
 			setAccountId(*(long long*) data);
 			break;
 		case (NET_RES_OK_LOG_IN_CHALLENGE):
@@ -36,10 +37,13 @@ void netResponse(unsigned char opcode, void* data) {
 			pleaseBreakpoint();
 			break;
 	}
+	return len;
 }
 
 void netHandler(struct mg_connection* connection, int event, void* eventData, void* funcData) {
 	struct mg_ws_message* message = eventData;
+	void* respData = 0;
+	unsigned int respLen = 0;
 	switch (event) {
 		case (MG_EV_OPEN):
 			connection->is_hexdumping = 1;
@@ -53,15 +57,17 @@ void netHandler(struct mg_connection* connection, int event, void* eventData, vo
 			exit(1);
 			break;
 		case (MG_EV_WS_MSG): {
-			netResponse(*message->data.ptr, (void*) message->data.ptr + 1);
+			respLen = netResponse(*message->data.ptr, (void*) message->data.ptr + 1);
 		} break;
 	}
 	struct NetSessionResponse* rdata = funcData;
 	if (event == MG_EV_ERROR || event == MG_EV_CLOSE || event == MG_EV_WS_MSG || event == MG_EV_WS_OPEN) {
 		if (rdata->data) {
 		   	if (*(char*)message->data.ptr == *(char*)rdata->data) {
+				respData = malloc(respLen);
+				memcpy(respData, ((char*)message->data.ptr) + 1, respLen);
 				// Filter matches response
-				rdata->data = eventData;
+				rdata->data = respData;
 				rdata->finished = 1;
 			}
 		} else {
@@ -107,6 +113,7 @@ void* netRequest(struct NetSession* session, unsigned char operation, void* data
 			break;
 		case (NET_REQ_LOOKUP_USERNAME):
 			for(;((char*)data)[len];len++);
+			expectedResponse = NET_RES_OK_ACCOUNT_ID;
 			break;
 		case (NET_REQ_CREATE_ACCOUNT):
 			for(;((char*)data)[len++];);
@@ -152,6 +159,8 @@ void netCreateAccount(struct NetSession* session, char* username) {
 	memcpy(data + len, getKeyPublic(), 32 * sizeof(unsigned char));
 	netRequest(session, NET_REQ_CREATE_ACCOUNT, data, 0);
 	// we will ASSERT that it worked :)
-	// Then we need the username
-	netRequest(session, NET_REQ_LOOKUP_USERNAME, username, 0);
+	// Then we need the account ID
+	// It's in big endian, but it doesn't matter.
+	long long* id = netRequest(session, NET_REQ_LOOKUP_USERNAME, username, 0);
+	pleaseBreakpoint();
 }
