@@ -39,6 +39,7 @@ void netResponse(unsigned char opcode, void* data) {
 }
 
 void netHandler(struct mg_connection* connection, int event, void* eventData, void* funcData) {
+	struct mg_ws_message* message = eventData;
 	switch (event) {
 		case (MG_EV_OPEN):
 			connection->is_hexdumping = 1;
@@ -48,16 +49,17 @@ void netHandler(struct mg_connection* connection, int event, void* eventData, vo
 			break;
 		case (MG_EV_ERROR):
 			printf("Websocket opening error.\n");
+			// Deal with this later
+			exit(1);
 			break;
 		case (MG_EV_WS_MSG): {
-			struct mg_ws_message* message = eventData;
 			netResponse(*message->data.ptr, (void*) message->data.ptr + 1);
 		} break;
 	}
 	struct NetSessionResponse* rdata = funcData;
 	if (event == MG_EV_ERROR || event == MG_EV_CLOSE || event == MG_EV_WS_MSG || event == MG_EV_WS_OPEN) {
 		if (rdata->data) {
-		   	if (*(char*)eventData == *(char*)rdata->data) {
+		   	if (*(char*)message->data.ptr == *(char*)rdata->data) {
 				// Filter matches response
 				rdata->data = eventData;
 				rdata->finished = 1;
