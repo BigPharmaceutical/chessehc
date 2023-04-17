@@ -21,7 +21,7 @@ impl<'a> Requester<'a> for InGame {
             1 => Self::Board,
             2 => Self::Manage,
             3 => Self::Leave,
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 

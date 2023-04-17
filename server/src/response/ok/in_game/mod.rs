@@ -11,7 +11,17 @@ pub enum InGame {
 }
 
 impl Responder for InGame {
-    fn write(self, _buffer: &mut Vec<u8>) {
-        todo!()
+    fn write(self, buffer: &mut Vec<u8>) {
+        let Some(byte_zero) = buffer.get_mut(0) else { return };
+
+        *byte_zero |= match &self {
+            Self::Game(_) => 0,
+            Self::Board(_) => 1,
+        } << 4;
+
+        match self {
+            Self::Game(res) => res.write(buffer),
+            Self::Board(res) => res.write(buffer),
+        }
     }
 }

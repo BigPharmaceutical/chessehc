@@ -8,6 +8,7 @@ pub enum Delta<Set> {
 }
 
 #[allow(clippy::module_name_repetitions)]
+#[derive(Debug, Clone, Copy)]
 pub enum PartialDelta<PieceId> {
     Move(Coordinate, Coordinate),
     Delete(Coordinate),

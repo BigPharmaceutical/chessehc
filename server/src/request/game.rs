@@ -33,7 +33,7 @@ impl<'a> Requester<'a> for Game<'a> {
                 let code = String::from_utf8_lossy(&buffer[1..]);
                 Self::Join(code)
             }
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 
@@ -57,12 +57,12 @@ async fn create_game<'a>(client: &mut Client<'a>) -> Result<()> {
         return Err(Error::Server);
     };
 
-    client.game = Some((game.1, game.2));
+    client.game = (Some(game.1), Some(game.2));
 
     client
         .send(
             Response::Ok(Ok::InGame(in_game::InGame::Game(
-                in_game::game::Game::GameToken(game.0),
+                in_game::game::Game::GameCode(game.0),
             )))
             .into(),
         )
@@ -92,11 +92,7 @@ async fn join_game<'a, 'b>(client: &mut Client<'a>, code: Cow<'b, str>) -> Resul
         .await
         .map_err(|_| Error::Server)?;
 
-    let game::GameMessage::Join(broadcast) = client.game_handle.1.recv().await.ok_or(Error::Server)? else {
-        return Err(Error::Server);
-    };
-
-    client.game = Some((broadcast, game_sender));
+    client.game.1 = Some(game_sender);
 
     client
         .send(Response::Ok(Ok::Confirmation(JOIN_GAME_OP_CODE)).into())

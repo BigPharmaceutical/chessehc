@@ -65,7 +65,7 @@ impl<'a> Requester<'a> for Account<'a> {
 
                 Self::LookupUsername(name)
             }
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 

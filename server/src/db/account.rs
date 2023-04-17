@@ -101,11 +101,11 @@ UPDATE accounts
         account_id,
         new_username
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await
     {
-        Ok(_) => Ok(true),
-        Err(sqlx::Error::RowNotFound) => Ok(false),
+        Ok(res) if res.rows_affected() == 1 => Ok(true),
+        Ok(_) => Ok(false),
         Err(_) => Err(()),
     }
 }
@@ -124,11 +124,11 @@ UPDATE accounts
         account_id,
         new_public_key
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await
     {
-        Ok(_) => Ok(true),
-        Err(sqlx::Error::RowNotFound) => Ok(false),
+        Ok(res) if res.rows_affected() == 1 => Ok(true),
+        Ok(_) => Ok(false),
         Err(_) => Err(()),
     }
 }

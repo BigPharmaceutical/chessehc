@@ -8,6 +8,8 @@ where
     type Error: error::Error;
     type PieceId;
 
+    const NONE_ID: Self::PieceId;
+
     // Piece type constants
     fn type_id(&self) -> Self::PieceId;
     fn capture_points(&self) -> Option<u16>;

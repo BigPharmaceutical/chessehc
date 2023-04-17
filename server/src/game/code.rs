@@ -16,8 +16,8 @@ lazy_static! {
         let mut rng = rand::thread_rng();
         (
             Mutex::new(rng.gen_range(0..(GAME_TOKEN_RNG_M - 1))),
-            rng.gen_range(0..(GAME_TOKEN_RNG_M / 2)) * 2 + 1,
-            rng.gen_range(1..GAME_TOKEN_RNG_M),
+            rng.gen_range(0..(GAME_TOKEN_RNG_M / 4)) * 4 + 1,
+            rng.gen_range(1..(GAME_TOKEN_RNG_M / 2)) * 2 + 1,
             rng.gen_range(1..(1 << 20)),
         )
     };
@@ -37,8 +37,8 @@ fn rng_next() -> u64 {
     *x
 }
 
-fn num_to_token(token: u64, mut shift: u32) -> u64 {
-    let mut bytes = token.to_be_bytes();
+fn num_to_token(num: u64, mut shift: u32) -> u64 {
+    let mut bytes = num.to_be_bytes();
 
     for byte in &mut bytes[3..] {
         *byte = byte.rotate_right(shift & 7);
@@ -49,8 +49,8 @@ fn num_to_token(token: u64, mut shift: u32) -> u64 {
 }
 
 pub fn next_token() -> u64 {
-    let token = rng_next();
-    num_to_token(token, GAME_TOKEN_RNG.3)
+    let num = rng_next();
+    num_to_token(num, GAME_TOKEN_RNG.3)
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -66,12 +66,12 @@ pub fn code_to_token<T>(code: T) -> Result<u64, ()>
 where
     T: AsRef<[u8]>,
 {
-    let mut token_bytes = [0; 5];
+    let mut token_bytes = [0; 6];
     BASE64_ENGINE
         .decode_slice(code, &mut token_bytes)
         .map_err(|_| ())?;
 
     let mut number_bytes = [0; 8];
-    number_bytes[3..].copy_from_slice(&token_bytes);
+    number_bytes[3..].copy_from_slice(&token_bytes[..5]);
     Ok(u64::from_be_bytes(number_bytes))
 }

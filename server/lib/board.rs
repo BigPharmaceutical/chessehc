@@ -373,4 +373,22 @@ impl<Set: PieceSet> Board<Set> {
 
         partial_moves
     }
+
+    #[must_use]
+    pub fn export(&self) -> (usize, usize, Vec<(u8, Set::PieceId)>) {
+        (
+            self.width(),
+            self.height(),
+            self.0
+                .iter()
+                .flat_map(|rank| {
+                    rank.iter().map(|spot| {
+                        spot.get()
+                            .as_ref()
+                            .map_or((0, Set::NONE_ID), |piece| (piece.player(), piece.type_id()))
+                    })
+                })
+                .collect(),
+        )
+    }
 }

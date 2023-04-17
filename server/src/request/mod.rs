@@ -45,7 +45,7 @@ impl<'a> Requester<'a> for Request<'a> {
             1 => Self::Acc(Account::parse(buffer)?),
             2 => Self::Game(Game::parse(buffer)?),
             3 => Self::IG(InGame::parse(buffer)?),
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 

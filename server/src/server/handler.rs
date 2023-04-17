@@ -1,15 +1,40 @@
 use base64::Engine;
 use futures_util::{
+    future::OptionFuture,
     stream::{SplitSink, StreamExt},
     SinkExt,
 };
-use tokio::{net::TcpStream, time::Instant, sync::{broadcast, mpsc}};
-use tokio_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
+use tokio::{
+    net::TcpStream,
+    select,
+    sync::{
+        broadcast::{self, error::RecvError},
+        mpsc,
+    },
+    time::Instant,
+};
+use tokio_tungstenite::{
+    accept_async,
+    tungstenite::{Error, Message},
+    WebSocketStream,
+};
 
 use crate::{
     config::{BASE64_ENGINE, CHALLENGE_LENGTH, GAME_SENDER_CAPACITY},
+    game::{Broadcast, GameMessage, PlayerMessage},
     request::{Request, Requester},
-    response::{err::mal_req::MalformedRequest, Response}, game::{Broadcast, PlayerMessage, GameMessage},
+    response::{
+        self,
+        err::mal_req::MalformedRequest,
+        ok::{
+            in_game::{
+                game::{players::Players, Game},
+                InGame,
+            },
+            Ok,
+        },
+        Response,
+    },
 };
 
 pub struct Client<'a> {
@@ -19,10 +44,10 @@ pub struct Client<'a> {
     pub log_in_challenge: Option<(i64, [u8; CHALLENGE_LENGTH], Instant)>,
     pub log_in: Option<i64>,
     pub game_handle: (mpsc::Sender<GameMessage>, mpsc::Receiver<GameMessage>),
-    pub game: Option<(
-        broadcast::Receiver<Broadcast>,
-        mpsc::Sender<PlayerMessage>,
-    )>,
+    pub game: (
+        Option<broadcast::Receiver<Broadcast>>,
+        Option<mpsc::Sender<PlayerMessage>>,
+    ),
 }
 
 impl<'a> Client<'a> {
@@ -37,7 +62,7 @@ impl<'a> Client<'a> {
             log_in_challenge: None,
             log_in: None,
             game_handle: mpsc::channel(GAME_SENDER_CAPACITY),
-            game: None,
+            game: (None, None),
         }
     }
 
@@ -68,40 +93,14 @@ pub async fn handle(socket: TcpStream) {
     let mut client = Client::new(peer_address, &mut write);
 
     while !client.close {
-        let Some(Ok(message)) = read.next().await else { break };
+        let in_game = client.game.0.is_some();
+        let game_broadcast: OptionFuture<_> =
+            client.game.0.as_mut().map(broadcast::Receiver::recv).into();
 
-        match message {
-            Message::Binary(data) => {
-                client.handle_message(&data).await;
-            }
-            Message::Text(encoded_data) => {
-                // Decode the text to binary data
-                let length = (encoded_data.len() + 3) / 4 * 3;
-                let mut data = Vec::with_capacity(length);
-
-                if BASE64_ENGINE.decode_vec(encoded_data, &mut data).is_err() {
-                    client.send(MalformedRequest::b64().into()).await.ok();
-                    continue;
-                }
-
-                client.handle_message(&data).await;
-            }
-
-            Message::Ping(data) => {
-                // Echo the data
-                if client
-                    .write
-                    .send(Message::Pong(data.clone()))
-                    .await
-                    .is_err()
-                {
-                    break;
-                }
-            }
-            Message::Pong(_data) => {}
-
-            Message::Close(_) => break,
-            Message::Frame(_) => (),
+        select! {
+            update = read.next() => handle_socket(&mut client, update).await,
+            update = client.game_handle.1.recv() => handle_game_message(&mut client, update).await,
+            update = game_broadcast, if in_game => handle_game_broadcast(&mut client, update).await,
         }
     }
 
@@ -123,5 +122,121 @@ impl<'a, 'b> Client<'a> {
                 self.send(Response::from(error).into()).await.ok();
             }
         };
+    }
+}
+
+async fn handle_socket<'a>(client: &mut Client<'a>, update: Option<Result<Message, Error>>) {
+    let Some(Ok(message)) = update else {
+        client.close = true;
+        return;
+    };
+
+    match message {
+        Message::Binary(data) => {
+            client.handle_message(&data).await;
+        }
+        Message::Text(encoded_data) => {
+            // Decode the text to binary data
+            let length = (encoded_data.len() + 3) / 4 * 3;
+            let mut data = Vec::with_capacity(length);
+
+            if BASE64_ENGINE.decode_vec(encoded_data, &mut data).is_err() {
+                client.send(MalformedRequest::b64().into()).await.ok();
+                return;
+            }
+
+            client.handle_message(&data).await;
+        }
+
+        Message::Ping(data) => {
+            // Echo the data
+            if client
+                .write
+                .send(Message::Pong(data.clone()))
+                .await
+                .is_err()
+            {
+                client.close = true;
+            }
+        }
+        Message::Pong(_data) => {}
+
+        Message::Close(_) => {
+            client.close = true;
+        }
+        Message::Frame(_) => (),
+    }
+}
+
+async fn handle_game_message<'a>(client: &mut Client<'a>, update: Option<GameMessage>) {
+    let Some(message) = update else { return };
+
+    match message {
+        GameMessage::Join(broadcast) => {
+            client.game.0 = Some(broadcast);
+        }
+        GameMessage::JoinRejection(reason) => {
+            client.game = (None, None);
+            client
+                .send(
+                    Response::Err(response::err::Error::InvalReq(
+                        response::err::inval_req::InvalidRequest::Game(reason),
+                    ))
+                    .into(),
+                )
+                .await
+                .ok();
+        }
+        GameMessage::NotGameHost => {
+            client
+                .send(
+                    Response::Err(response::err::Error::InvalReq(
+                        response::err::inval_req::InvalidRequest::Perm(
+                            response::err::inval_req::perms::Permissions::NotGameHost,
+                        ),
+                    ))
+                    .into(),
+                )
+                .await
+                .ok();
+        }
+        GameMessage::TooFewPlayers => {
+            client.send(
+                Response::Err(response::err::Error::InvalReq(
+                    response::err::inval_req::InvalidRequest::Game(
+                        response::err::inval_req::game::Game::TooFewPlayers,
+                    )
+                ))
+                .into()
+            )
+            .await
+            .ok();
+        }
+    }
+}
+
+async fn handle_game_broadcast<'a>(
+    client: &mut Client<'a>,
+    update: Option<Result<Broadcast, RecvError>>,
+) {
+    let Some(Ok(message)) = update else { return };
+
+    match message {
+        Broadcast::Join(id) => {
+            client
+                .send(
+                    Response::Ok(Ok::InGame(InGame::Game(Game::Players(Players::Join(id))))).into(),
+                )
+                .await
+                .ok();
+        }
+        Broadcast::Leave(_player, _deltas) => todo!(),
+        Broadcast::Start { players: _players, board: _board } => todo!(),
+        Broadcast::Turn(_player) => todo!(),
+        Broadcast::Move {
+            player: _player,
+            deltas: _deltas,
+            points: _points,
+        } => todo!(),
     }
 }

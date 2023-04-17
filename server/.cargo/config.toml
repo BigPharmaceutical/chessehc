@@ -1,3 +1,4 @@
 [alias]
 clippy_all = "clippy --all-features --all-targets"
+test_all = "test --all-features"
 db_data_update = "sqlx prepare -- --all-features --all-targets"

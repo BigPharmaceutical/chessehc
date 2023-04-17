@@ -6,7 +6,9 @@ use crate::{
     spot::Spot,
 };
 
-use super::{Bishop, Error, Knight, Queen, Rook, StandardCompatiblePiece, StandardCompatiblePieceSet};
+use super::{
+    Bishop, Error, Knight, Queen, Rook, StandardCompatiblePiece, StandardCompatiblePieceSet,
+};
 
 #[derive(Clone, Debug)]
 pub struct Pawn {

@@ -5,6 +5,10 @@ pub enum Game {
     UnknownGameId,
     NotIn,
     In,
+    Started,
+    Full,
+    InThis,
+    TooFewPlayers,
 }
 
 impl Responder for Game {
@@ -16,6 +20,10 @@ impl Responder for Game {
             Self::UnknownGameId => 1,
             Self::NotIn => 2,
             Self::In => 3,
-        } << 1;
+            Self::Started => 4,
+            Self::Full => 5,
+            Self::InThis => 6,
+            Self::TooFewPlayers => 7,
+        };
     }
 }

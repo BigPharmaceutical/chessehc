@@ -16,12 +16,13 @@ pub const GAME_SENDER_CAPACITY: usize = 5;
 
 pub const GAME_MAX_CODE_SEARCH_TRIES: u8 = 200;
 
+pub const CHALLENGE_LENGTH: usize = 32;
+pub const LOGIN_TIMEOUT_SECS: u64 = 10;
+
 pub const USERNAME_MIN_LENGTH: usize = 3;
 pub const USERNAME_MAX_LENGTH: usize = 15;
 
-pub const LOGIN_TIMEOUT_SECS: u64 = 10;
-
-pub const CHALLENGE_LENGTH: usize = 32;
+pub const PLAYER_LIMIT: u8 = 32;
 
 lazy_static! {
     static ref USERNAME_REGEX: Regex =

@@ -101,8 +101,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "chessehc_server"
-version = "0.2.8"
+name = "chessehc"
+version = "0.2.9"
 dependencies = [
  "base64 0.21.0",
  "dotenv",

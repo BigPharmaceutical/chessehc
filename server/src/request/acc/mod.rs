@@ -68,7 +68,7 @@ impl<'a> Requester<'a> for Account<'a> {
                 Self::ChangeKey(&buffer[1..])
             }
             3 => Self::Delete,
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 

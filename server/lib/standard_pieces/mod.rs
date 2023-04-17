@@ -108,6 +108,8 @@ impl PieceSet for StandardCompatiblePieceSet {
     type Error = Error;
     type PieceId = u8;
 
+    const NONE_ID: Self::PieceId = 0;
+
     fn type_id(&self) -> Self::PieceId {
         (**self).type_id()
     }

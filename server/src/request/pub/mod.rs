@@ -16,8 +16,7 @@ use crate::{
             mal_req::{mal_bin::MalformedBinary, MalformedRequest},
             Error,
         },
-        ok::Ok,
-        Response, Result,
+        ok, Response, Result,
     },
     server::handler::Client,
 };
@@ -28,8 +27,6 @@ pub mod log_in;
 pub mod profile;
 
 use self::{log_in::LogIn, profile::Profile};
-
-const CREATE_ACCOUNT_OP_CODE: u8 = 0b0010_0000;
 
 pub enum Public<'a> {
     Status,
@@ -47,7 +44,7 @@ impl<'a> Requester<'a> for Public<'a> {
             1 => Self::Profile(Profile::parse(buffer)?),
             2 => parse_new_account(buffer)?,
             3 => Self::LI(LogIn::parse(buffer)?),
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 
@@ -129,66 +126,16 @@ async fn create_new_account<'a, 'b>(
     client.log_in = Some(id);
 
     client
-        .send(Response::Ok(Ok::Confirmation(CREATE_ACCOUNT_OP_CODE)).into())
+        .send(
+            Response::Ok(ok::Ok::Public(ok::public::Public::Profile(
+                ok::public::profile::Profile::Account(
+                    ok::public::profile::account::Account::AccountId(id),
+                ),
+            )))
+            .into(),
+        )
         .await
         .ok();
 
     Ok(())
-}
-
-#[cfg(test)]
-mod test {
-    use crate::request::{r#pub::Public, Request, Requester};
-
-    use super::CREATE_ACCOUNT_OP_CODE;
-
-    #[test]
-    fn test_create_account_op_code() {
-        let request = [
-            CREATE_ACCOUNT_OP_CODE,
-            b'u',
-            b's',
-            b'e',
-            b'r',
-            0,
-            0x57,
-            0x37,
-            0x86,
-            0x92,
-            0xa2,
-            0x6f,
-            0x85,
-            0x1e,
-            0xf2,
-            0x62,
-            0xbd,
-            0x94,
-            0xf2,
-            0x79,
-            0x62,
-            0x44,
-            0xf0,
-            0x03,
-            0x1f,
-            0xba,
-            0x6e,
-            0x60,
-            0x76,
-            0x4a,
-            0x1d,
-            0x63,
-            0x13,
-            0x80,
-            0x4a,
-            0x70,
-            0xfa,
-            0x66,
-        ];
-
-        let create_account = Request::parse(&request);
-        assert!(
-            matches!(create_account, Ok(Request::Pub(Public::CreateAccount(..)))),
-            "op-code {CREATE_ACCOUNT_OP_CODE:0>8b} is not the create account op-code"
-        );
-    }
 }

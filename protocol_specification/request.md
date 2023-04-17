@@ -46,13 +46,14 @@ Data: id (i64)
 Op-code: `00010100`  
 Data: username (string)  
 [Response](./response.md#account-id)  
+[Error](./response.md#invalid-username)  
 [Error](./response.md#unknown-username)
 
 ### Create Account
 
 Op-code: `00100000`  
 Data: username (string), *null*, public key (32 bytes)  
-[Response](./response.md#confirmation)  
+[Response](./response.md#account-id)  
 [Error](./response.md#logged-in)  
 [Error](./response.md#invalid-username)  
 [Error](./response.md#username-in-use)  
@@ -106,7 +107,7 @@ Op-code: `01110000`
 ### Create Game
 
 Op-code: `10000000`  
-[Response](./response.md#game-token)  
+[Response](./response.md#game-code)  
 [Error](./response.md#in-game)  
 [Error](./response.md#not-logged-in)
 
@@ -117,8 +118,8 @@ Data: game token (string)
 [Response](./response.md#confirmation)  
 [Error](./response.md#in-game)  
 [Error](./response.md#not-logged-in)  
-[Error](./response.md#invalid-game-id)  
-[Error](./response.md#unknown-game-id)
+[Error](./response.md#invalid-game-code)  
+[Error](./response.md#unknown-game-code)
 
 ### Leave Game
 

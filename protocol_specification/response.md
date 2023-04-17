@@ -21,8 +21,14 @@ result (0):
     - *todo*
   - 3 - in-game (3)
     - 0 - game (4-5)
-      - 0 - [game token](#game-token)
-      - *todo*
+      - 0 - [game code](#game-code)
+      - 1 - players (6-7)
+        - 0 - [player join](#player-join)
+        - 1 - [player leave](#player-leave)
+        - 2 - [player list](#player-list)
+        - 3 - *unreserved* (host?)
+      - 2 - *unreserved*
+      - 3 - *unreserved*
     - 1 - board
       - *todo*
 - 1 - error (1-2)
@@ -46,11 +52,15 @@ result (0):
         - 1 - [invalid username](#invalid-username)
         - 2 - [unknown username](#unknown-username)
         - 3 - [username in use](#username-in-use)
-    - 2 - game (5-6)
-      - 0 - [invalid game id](#invalid-game-id)
-      - 1 - [unknown game id](#unknown-game-id)
-      - 2 - [not in game](#not-in-game)
-      - 3 - [in game](#in-game)
+    - 2 - game (5-7)
+        - 0 - [invalid game code](#invalid-game-code)
+        - 1 - [unknown game code](#unknown-game-code)
+        - 2 - [not in game](#not-in-game)
+        - 3 - [in game](#in-game)
+        - 4 - [game started]
+        - 5 - [game full]
+        - 6 - [in this game]
+        - 7 - [too few players]
     - 3 - *unreserved*
   - 3 - malformed (3)
     - 0 - binary (4)
@@ -78,7 +88,7 @@ Data: challenge (bytes)
 Type: `00100000`  
 Data: op-code (1 byte)
 
-### Game Token
+### Game Code
 
 Type: `01000000`  
 Data: game token (string)
@@ -131,11 +141,11 @@ Type: `11001110`
 
 Type: `11001111`
 
-### Invalid Game Id
+### Invalid Game Code
 
 Type: `11010000`
 
-### Unknown Game Id
+### Unknown Game Code
 
 Type: `11010010`
 

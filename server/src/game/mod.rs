@@ -1,11 +1,18 @@
 use std::{collections::HashMap, sync::Mutex};
 
-use chessehc::standard_pieces::StandardCompatiblePieceSet;
+use chessehc::{
+    delta::PartialDelta, piece_set::PieceSet, standard_pieces::StandardCompatiblePieceSet,
+};
 use lazy_static::lazy_static;
 use nohash_hasher::{BuildNoHashHasher, IntMap};
 use tokio::sync::{broadcast, mpsc};
 
-use crate::config::{GAME_BROADCAST_CAPACITY, GAME_MAX_CODE_SEARCH_TRIES, GAME_RECEIVER_CAPACITY};
+use crate::{
+    config::{
+        GAME_BROADCAST_CAPACITY, GAME_MAX_CODE_SEARCH_TRIES, GAME_RECEIVER_CAPACITY, PLAYER_LIMIT,
+    },
+    response::err::inval_req,
+};
 
 use self::code::{next_token, token_to_code};
 
@@ -17,20 +24,36 @@ lazy_static! {
         Mutex::new(HashMap::with_hasher(BuildNoHashHasher::default()));
 }
 
-#[derive(Clone)]
+pub type PartialDeltas = Vec<PartialDelta<<StandardCompatiblePieceSet as PieceSet>::PieceId>>;
+
+#[derive(Debug, Clone)]
 pub enum Broadcast {
     Join(i64),
-    Leave(i64),
+    Leave(i64, Option<PartialDeltas>),
+    Start {
+        players: Vec<i64>,
+        board: Vec<(u8, <StandardCompatiblePieceSet as PieceSet>::PieceId)>,
+    },
+    Turn(i64),
+    Move {
+        player: i64,
+        deltas: PartialDeltas,
+        points: u16,
+    },
 }
 
 pub enum PlayerMessage {
     Join(i64, mpsc::Sender<GameMessage>),
     Leave(i64),
+    Start(i64),
 }
 
 #[allow(clippy::module_name_repetitions)]
 pub enum GameMessage {
     Join(broadcast::Receiver<Broadcast>),
+    JoinRejection(inval_req::game::Game),
+    NotGameHost,
+    TooFewPlayers,
 }
 
 type NewGame = (
@@ -38,14 +61,6 @@ type NewGame = (
     broadcast::Receiver<Broadcast>,
     mpsc::Sender<PlayerMessage>,
 );
-
-macro_rules! broadcast {
-    ( $tb:expr, $val:expr ) => {
-        if let Err(err) = $tb.send($val) {
-            eprintln!("Error Sending Broadcast: {err}");
-        }
-    };
-}
 
 async fn game_handler(
     token: u64,
@@ -60,18 +75,86 @@ async fn game_handler(
     while let Some(msg) = receiver.recv().await {
         match msg {
             PlayerMessage::Join(player_id, tp) => {
-                if game.is_some() {}
+                if game.is_some() {
+                    tp.send(GameMessage::JoinRejection(inval_req::game::Game::Started))
+                        .await
+                        .ok();
+                    continue;
+                }
+
+                if players.len() >= PLAYER_LIMIT.into() {
+                    tp.send(GameMessage::JoinRejection(inval_req::game::Game::Full))
+                        .await
+                        .ok();
+                    continue;
+                }
+
+                if players.iter().any(|(id, _)| id == &player_id) {
+                    tp.send(GameMessage::JoinRejection(inval_req::game::Game::InThis))
+                        .await
+                        .ok();
+                    continue;
+                }
 
                 let rb = tb.subscribe();
                 if let Err(err) = tp.send(GameMessage::Join(rb)).await {
-                    eprintln!("Error Joining Game: {err}");
+                    eprintln!("Error Sending Join Confirmation: {err}");
                     continue;
                 };
 
                 players.push((player_id, tp));
-                broadcast!(tb, Broadcast::Join(player_id));
+                tb.send(Broadcast::Join(player_id))
+                    .expect("error sending broadcast");
             }
-            PlayerMessage::Leave(_) => todo!(),
+            PlayerMessage::Leave(player_id) => {
+                let Some(index) = players.iter().position(|(id, _)| id == &player_id) else {
+                    eprintln!("Error Removing Player From Game: player {player_id} is not in the game!");
+                    continue;
+                };
+                let index = u8::try_from(index).expect("too many players in game");
+
+                let deltas = game.as_mut().map(|game| game.remove_player(index));
+                tb.send(Broadcast::Leave(player_id, deltas))
+                    .expect("error sending broadcast");
+            }
+            PlayerMessage::Start(id) => {
+                let number_of_players =
+                    u8::try_from(players.len()).expect("too many players in game");
+
+                let (_, tp) = players
+                    .iter_mut()
+                    .find(|(player_id, _)| *player_id == id)
+                    .expect("player not in game");
+
+                if id != host_id {
+                    if let Err(err) = tp.send(GameMessage::NotGameHost).await {
+                        eprintln!("Error Sending Error: {err}");
+                    }
+                    continue;
+                }
+
+                if number_of_players < 2 {
+                    if let Err(err) = tp.send(GameMessage::TooFewPlayers).await {
+                        eprintln!("Error Sending Error: {err}");
+                    }
+                }
+
+                let player_ids: Vec<i64> = players.iter().map(|(id, _)| *id).collect();
+
+                let new_game = chessehc::game::Game::new(
+                    number_of_players,
+                    8,
+                    7 * u16::from(number_of_players),
+                );
+                let (_, _, board) = new_game.board().export();
+                game = Some(new_game);
+
+                tb.send(Broadcast::Start {
+                    players: player_ids,
+                    board,
+                })
+                .expect("error sending broadcast");
+            }
         }
     }
 

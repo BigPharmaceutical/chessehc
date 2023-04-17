@@ -49,7 +49,7 @@ impl<'a> Requester<'a> for LogIn<'a> {
                 let signature = &buffer[1..];
                 Self::ChallengeResponse(signature)
             }
-            _ => return Err(MalformedRequest::op_err()),
+            _ => unreachable!(),
         })
     }
 
