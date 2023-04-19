@@ -26,7 +26,7 @@ int initGraphics() {
 	return 1;
 }
 void graphicsDyeSurface(SDL_Surface* surface, struct PixelRGB* color) {
-	unsigned long max = surface->w * surface->h;
+	unsigned long max = (unsigned long) surface->w * surface->h;
 	struct PixelARGB* pixels = surface->pixels;
 	for (unsigned long i = 0; i < max; i++) {
 		// average bit manipulation

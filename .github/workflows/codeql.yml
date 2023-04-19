@@ -60,7 +60,7 @@ jobs:
         # queries: security-extended,security-and-quality
 
     - name: Build
-      run: sudo apt-get install libsdl2-dev && make
+      run: sudo apt-get install -y libsdl2-dev && make
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
