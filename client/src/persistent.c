@@ -44,6 +44,10 @@ unsigned char* getKeyPublic() {
 	return keyPublic;
 }
 
+unsigned char* getKeyPrivate() {
+	return keyPrivate;
+}
+
 void setAccountId(long long value) {
 	accountid = value;
 	FILE* file = fopen("chessehc.key", "a+b");

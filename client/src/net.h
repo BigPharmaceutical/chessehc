@@ -57,8 +57,10 @@ struct NetSession* netConnect(char* url);
 
 void netDispose(struct NetSession* session);
 
-void* netRequest(struct NetSession* session, unsigned char operation, void* data, void (*responseHandler)(void*));
+void* netRequest(struct NetSession* session, unsigned char operation, void* data);
 
 void netCreateAccount(struct NetSession* session, char* username);
+
+void netLogin(struct NetSession* session);
 
 #endif

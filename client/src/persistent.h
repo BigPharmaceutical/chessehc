@@ -7,6 +7,8 @@ long long getAccountId();
 
 unsigned char* getKeyPublic();
 
+unsigned char* getKeyPrivate();
+
 void setAccountId(long long value);
 
 #endif

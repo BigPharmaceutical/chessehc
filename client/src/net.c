@@ -1,5 +1,6 @@
 #include "net.h"
 #include "persistent.h"
+#include "ed25519.h"
 
 /////////////////////////////////
 /// TODO safety /////////////////
@@ -16,10 +17,9 @@ unsigned int netResponse(unsigned char opcode, void* data) {
 		case (NET_RES_OK_ACCOUNT_ID):
 			len = sizeof(long long);
 			// it's big endian, but it doesn't matter because it gets rotated back anyway.
-			setAccountId(*(long long*) data);
 			break;
 		case (NET_RES_OK_LOG_IN_CHALLENGE):
-			
+			len = 32;	
 			break;
 		case (NET_RES_OK_CONFIRMATION):
 			len = 1;
@@ -104,7 +104,7 @@ void* netAwait(struct NetSession* session, unsigned char operation) {
 	return session->resp.data;
 }
 
-void* netRequest(struct NetSession* session, unsigned char operation, void* data, void (*responseHandler)(void*)) {
+void* netRequest(struct NetSession* session, unsigned char operation, void* data) {
 	unsigned int len = 0;
 	unsigned char expectedResponse = 0;
 	switch (operation) {
@@ -118,13 +118,15 @@ void* netRequest(struct NetSession* session, unsigned char operation, void* data
 		case (NET_REQ_CREATE_ACCOUNT):
 			for(;((char*)data)[len++];);
 			len += 32;
-			expectedResponse = NET_RES_OK_CONFIRMATION;
+			expectedResponse = NET_RES_OK_ACCOUNT_ID;
 			break;
 		case (NET_REQ_REQUEST_CHALLENGE):
 			len = 8;
+			expectedResponse = NET_RES_OK_LOG_IN_CHALLENGE;
 			break;
 		case (NET_REQ_CHALLENGE_RESPONSE):
 			len = 64;
+			expectedResponse = NET_RES_OK_CONFIRMATION;
 			break;
 		case (NET_REQ_LOG_OUT):
 			break;
@@ -157,10 +159,25 @@ void netCreateAccount(struct NetSession* session, char* username) {
 	unsigned char data[len + 32];
 	memcpy(data, username, len * sizeof(unsigned char));
 	memcpy(data + len, getKeyPublic(), 32 * sizeof(unsigned char));
-	netRequest(session, NET_REQ_CREATE_ACCOUNT, data, 0);
+	long long* id = netRequest(session, NET_REQ_CREATE_ACCOUNT, data);
+	//    SPEC CHANGES MADE THIS UNNECESSARY
 	// we will ASSERT that it worked :)
 	// Then we need the account ID
 	// It's in big endian, but it doesn't matter.
-	long long* id = netRequest(session, NET_REQ_LOOKUP_USERNAME, username, 0);
+	//long long* id = netRequest(session, NET_REQ_LOOKUP_USERNAME, username);
+	setAccountId(*id);
 	pleaseBreakpoint();
+	netLogin(session);
+}
+
+void netLogin(struct NetSession* session) {
+	long long accountId = getAccountId();
+	// Start challenge
+	unsigned char* challenge = netRequest(session, NET_REQ_REQUEST_CHALLENGE, &accountId);
+	// Sign
+	unsigned char signature[64];
+	ed25519_sign(signature, challenge, 32, getKeyPublic(), getKeyPrivate());
+	netRequest(session, NET_REQ_CHALLENGE_RESPONSE, signature);
+	// we assume it worked.
+
 }
