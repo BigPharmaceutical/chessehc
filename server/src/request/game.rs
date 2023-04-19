@@ -62,7 +62,7 @@ async fn create_game<'a>(client: &mut Client<'a>) -> Result<()> {
     client
         .send(
             Response::Ok(Ok::InGame(in_game::InGame::Game(
-                in_game::game::Game::GameCode(game.0),
+                in_game::game::Game::Code(game.0),
             )))
             .into(),
         )

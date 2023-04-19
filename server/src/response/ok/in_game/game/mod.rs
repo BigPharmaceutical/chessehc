@@ -1,26 +1,30 @@
 use crate::response::Responder;
 
-use self::players::Players;
+use self::{players::Players, status::Status};
 
 pub mod players;
+pub mod status;
 
-pub enum Game {
-    GameCode(String),
+pub enum Game<'a> {
+    Code(String),
     Players(Players),
+    Status(Status<'a>),
 }
 
-impl Responder for Game {
+impl<'a> Responder for Game<'a> {
     fn write(self, buffer: &mut Vec<u8>) {
         let Some(byte_zero) = buffer.get_mut(0) else { return };
 
         *byte_zero |= match &self {
-            Self::GameCode(_) => 0,
+            Self::Code(_) => 0,
             Self::Players(_) => 1,
+            Self::Status(_) => 2,
         } << 2;
 
         match self {
-            Self::GameCode(code) => buffer.extend_from_slice(code.as_bytes()),
+            Self::Code(code) => buffer.extend_from_slice(code.as_bytes()),
             Self::Players(res) => res.write(buffer),
+            Self::Status(res) => res.write(buffer),
         }
     }
 }

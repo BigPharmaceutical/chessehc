@@ -26,8 +26,10 @@ result (0):
         - 0 - [player join](#player-join)
         - 1 - [player leave](#player-leave)
         - 2 - [player list](#player-list)
-        - 3 - *unreserved* (host?)
-      - 2 - *unreserved*
+        - 3 - *unreserved*
+      - 2 - status (4)
+        - 0 - [game start]
+        - 1 - [game end]
       - 3 - *unreserved*
     - 1 - board
       - *todo*
@@ -57,10 +59,10 @@ result (0):
         - 1 - [unknown game code](#unknown-game-code)
         - 2 - [not in game](#not-in-game)
         - 3 - [in game](#in-game)
-        - 4 - [game started]
-        - 5 - [game full]
-        - 6 - [in this game]
-        - 7 - [too few players]
+        - 4 - [game started](#game-started)
+        - 5 - [game full](#game-full)
+        - 6 - [in this game](#in-this-game)
+        - 7 - [too few players](#too-few-players)
     - 3 - *unreserved*
   - 3 - malformed (3)
     - 0 - binary (4)
@@ -90,8 +92,28 @@ Data: op-code (1 byte)
 
 ### Game Code
 
-Type: `01000000`  
+Type: `01100000`  
 Data: game token (string)
+
+### Player Join
+
+Type: `01100100`  
+Data: account id (i64)
+
+### Player Leave
+
+Type: `01100101`  
+Data: account id (i64), deltas
+
+### Player List
+
+Type: `01100110`  
+Data: account ids (i64 list)
+
+### Game Start
+
+Type: `01101000`  
+Data: number of players (u8), account ids (i64 list), [board](./game.md#board)
 
 ### Server
 
@@ -147,15 +169,31 @@ Type: `11010000`
 
 ### Unknown Game Code
 
-Type: `11010010`
+Type: `11010001`
 
 ### Not in Game
 
-Type: `11010100`
+Type: `11010010`
 
 ### In Game
 
+Type: `11010011`
+
+### Game Started
+
+Type: `11010100`
+
+### Game Full
+
+Type: `11010101`
+
+### In This Game
+
 Type: `11010110`
+
+### Too Few Players
+
+Type: `11010111`
 
 ### Malformed Op-code
 

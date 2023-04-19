@@ -28,7 +28,7 @@ use crate::{
         err::mal_req::MalformedRequest,
         ok::{
             in_game::{
-                game::{players::Players, Game},
+                game::{players::Players, status::Status, Game},
                 InGame,
             },
             Ok,
@@ -201,16 +201,17 @@ async fn handle_game_message<'a>(client: &mut Client<'a>, update: Option<GameMes
                 .ok();
         }
         GameMessage::TooFewPlayers => {
-            client.send(
-                Response::Err(response::err::Error::InvalReq(
-                    response::err::inval_req::InvalidRequest::Game(
-                        response::err::inval_req::game::Game::TooFewPlayers,
-                    )
-                ))
-                .into()
-            )
-            .await
-            .ok();
+            client
+                .send(
+                    Response::Err(response::err::Error::InvalReq(
+                        response::err::inval_req::InvalidRequest::Game(
+                            response::err::inval_req::game::Game::TooFewPlayers,
+                        ),
+                    ))
+                    .into(),
+                )
+                .await
+                .ok();
         }
     }
 }
@@ -231,7 +232,17 @@ async fn handle_game_broadcast<'a>(
                 .ok();
         }
         Broadcast::Leave(_player, _deltas) => todo!(),
-        Broadcast::Start { players: _players, board: _board } => todo!(),
+        Broadcast::Start { players, board } => {
+            client
+                .send(
+                    Response::Ok(Ok::InGame(InGame::Game(Game::Status(Status::Start(
+                        &players, &board,
+                    )))))
+                    .into(),
+                )
+                .await
+                .ok();
+        }
         Broadcast::Turn(_player) => todo!(),
         Broadcast::Move {
             player: _player,

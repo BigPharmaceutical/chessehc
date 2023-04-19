@@ -19,7 +19,7 @@ impl Queen {
 
 impl StandardCompatiblePiece for Queen {
     fn type_id(&self) -> u8 {
-        2
+        5
     }
 
     fn capture_points(&self) -> Option<u16> {

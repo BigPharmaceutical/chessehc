@@ -9,7 +9,7 @@ pub enum Ok<'a> {
     Public(Public<'a>),
     Confirmation(u8),
     Account,
-    InGame(InGame),
+    InGame(InGame<'a>),
 }
 
 impl<'a> Responder for Ok<'a> {

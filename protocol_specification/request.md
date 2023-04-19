@@ -30,8 +30,8 @@ domain (0-1):
       - *todo*
     - 1 - board
       - *todo*
-    - 2 - manage
-      - *todo*
+    - 2 - manage (4-5)
+      - 0 - [start]
     - 3 - [leave](#leave-game)
 
 ### Get Username
@@ -120,6 +120,12 @@ Data: game token (string)
 [Error](./response.md#not-logged-in)  
 [Error](./response.md#invalid-game-code)  
 [Error](./response.md#unknown-game-code)
+
+### Start Game
+
+Op-code: `11100000`  
+[Response](./response.md#game-start)  
+[Error](./response.md#not-game-host)
 
 ### Leave Game
 

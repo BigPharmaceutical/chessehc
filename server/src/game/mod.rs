@@ -69,7 +69,7 @@ async fn game_handler(
     host_id: i64,
     host_sender: mpsc::Sender<GameMessage>,
 ) {
-    let mut players = vec![(host_id, host_sender)];
+    let mut players = vec![(host_id, Some(host_sender))];
     let mut game: Option<chessehc::game::Game<StandardCompatiblePieceSet>> = None;
 
     while let Some(msg) = receiver.recv().await {
@@ -102,7 +102,7 @@ async fn game_handler(
                     continue;
                 };
 
-                players.push((player_id, tp));
+                players.push((player_id, Some(tp)));
                 tb.send(Broadcast::Join(player_id))
                     .expect("error sending broadcast");
             }
@@ -111,6 +111,7 @@ async fn game_handler(
                     eprintln!("Error Removing Player From Game: player {player_id} is not in the game!");
                     continue;
                 };
+                players[index].1 = None;
                 let index = u8::try_from(index).expect("too many players in game");
 
                 let deltas = game.as_mut().map(|game| game.remove_player(index));
@@ -121,10 +122,13 @@ async fn game_handler(
                 let number_of_players =
                     u8::try_from(players.len()).expect("too many players in game");
 
-                let (_, tp) = players
+                let Some(tp) = players
                     .iter_mut()
                     .find(|(player_id, _)| *player_id == id)
-                    .expect("player not in game");
+                    .expect("player not in game").1.as_mut() else {
+                    eprintln!("got message from left player");
+                    continue;
+                };
 
                 if id != host_id {
                     if let Err(err) = tp.send(GameMessage::NotGameHost).await {

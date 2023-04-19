@@ -5,12 +5,12 @@ use self::{board::Board, game::Game};
 pub mod board;
 pub mod game;
 
-pub enum InGame {
-    Game(Game),
+pub enum InGame<'a> {
+    Game(Game<'a>),
     Board(Board),
 }
 
-impl Responder for InGame {
+impl<'a> Responder for InGame<'a> {
     fn write(self, buffer: &mut Vec<u8>) {
         let Some(byte_zero) = buffer.get_mut(0) else { return };
 
