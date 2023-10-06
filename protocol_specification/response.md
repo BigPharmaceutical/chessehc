@@ -28,8 +28,8 @@ result (0):
         - 2 - [player list](#player-list)
         - 3 - *unreserved*
       - 2 - status (4)
-        - 0 - [game start]
-        - 1 - [game end]
+        - 0 - [game start](#game-start)
+        - 1 - [game end](#game-end)
       - 3 - *unreserved*
     - 1 - board
       - *todo*
@@ -114,6 +114,11 @@ Data: account ids (i64 list)
 
 Type: `01101000`  
 Data: number of players (u8), account ids (i64 list), [board](./game.md#board)
+
+### Game End
+
+Type: `01101010`  
+Data: points per player (u16 list) in same order as ids in [Game Start](#game-start)
 
 ### Server
 

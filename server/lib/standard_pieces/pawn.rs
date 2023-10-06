@@ -32,6 +32,7 @@ impl Pawn {
     }
 }
 
+/// Pieces a pawn can upgrade to
 const UPGRADE_NUMBERS: [u8; 4] = [2, 3, 4, 5];
 
 impl StandardCompatiblePiece for Pawn {
@@ -148,6 +149,7 @@ impl StandardCompatiblePiece for Pawn {
         turn: u16,
         n_players_in_play: u8,
     ) -> Result<(Vec<Delta<StandardCompatiblePieceSet>>, u16), Error> {
+        // Determine how the pawn was moved
         let delta = CoordinateDelta(
             isize::try_from(r#move.to.0).expect("move too large")
                 - isize::try_from(r#move.from.0).expect("move too large"),
@@ -165,7 +167,9 @@ impl StandardCompatiblePiece for Pawn {
             },
         );
 
+        // First, double move
         if delta.1 == 2 && !self.has_moved {
+            // Get the intermediate step and record it
             self.first_double_move = Some((
                 (&r#move.from + (&CoordinateDelta(0, self.direction.into()), board))
                     .expect("failed to add 1 to y in coordinate"),
@@ -193,6 +197,7 @@ impl StandardCompatiblePiece for Pawn {
 
         self.has_moved = true;
 
+        // Upgrades
         if r#move.to.1 == self.upgrade_rank {
             deltas.push(Delta::Replace(
                 r#move.to,

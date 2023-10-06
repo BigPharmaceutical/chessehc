@@ -18,7 +18,7 @@ lazy_static! {
             Mutex::new(rng.gen_range(0..(GAME_TOKEN_RNG_M - 1))),
             rng.gen_range(0..(GAME_TOKEN_RNG_M / 4)) * 4 + 1,
             rng.gen_range(1..(GAME_TOKEN_RNG_M / 2)) * 2 + 1,
-            rng.gen_range(1..(1 << 20)),
+            rng.gen_range(1..(1 << 15)),
         )
     };
 }

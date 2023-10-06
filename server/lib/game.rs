@@ -43,9 +43,11 @@ impl<Set: PieceSet> Game<Set> {
             return Err(Error::SpotOccupied(*position, Some(piece)));
         }
 
+        // Generate and apply the delta to place the piece
         let delta = Delta::Replace(*position, piece);
-        let partial_delta = self.board.perform_delta(delta)?;
+        let partial_delta = self.board.apply_delta(delta)?;
 
+        // Regenerate the valid moves
         self.generate_valid_moves()?;
         Ok(partial_delta)
     }
@@ -55,8 +57,10 @@ impl<Set: PieceSet> Game<Set> {
     /// # Errors
     /// - [`Error<Set>::PieceError`] - Error from a piece
     pub fn generate_valid_moves(&mut self) -> Result<(), Error<Set>> {
+        // Reset the valid moves
         self.valid_moves = Vec::new();
 
+        // Get the number of players still in play
         let n_players_in_play = u8::try_from(
             self.players
                 .iter()
@@ -72,8 +76,11 @@ impl<Set: PieceSet> Game<Set> {
                     continue;
                 }
 
+                // For each piece owned by the current player:
+
                 let from = Coordinate(x, y);
 
+                // Get each valid move from the piece
                 for (to, data) in piece
                     .valid_moves(&self.board, &from, self.turn.0, n_players_in_play)
                     .map_err(|err| Error::PieceError(err))?
@@ -85,14 +92,14 @@ impl<Set: PieceSet> Game<Set> {
                         player: piece.player(),
                     };
 
-                    if self.attempt_move(&r#move)?.is_none() {
-                        continue;
+                    // Attempt the move, if it is valid, add it to the valid moves
+                    if self.attempt_move(&r#move)?.is_some() {
+                        self.valid_moves.push((Coordinate(x, y), to, data));
                     };
-
-                    self.valid_moves.push((Coordinate(x, y), to, data));
                 }
             }
         }
+
         Ok(())
     }
 
@@ -113,10 +120,12 @@ impl<Set: PieceSet> Game<Set> {
         &self,
         r#move: &Move,
     ) -> Result<AttemptedMove<Set, Set::PieceId>, Error<Set>> {
+        // Make sure the move is by the current player
         if r#move.player != self.turn.1 {
             return Ok(None);
         }
 
+        // Get the number of players still in play
         let n_players_in_play = u8::try_from(
             self.players
                 .iter()
@@ -125,10 +134,12 @@ impl<Set: PieceSet> Game<Set> {
         )
         .expect("exceeded maximum number of players in play");
 
+        // Clone the board and attempt the move
         let mut new_state = self.board.clone();
         let (partial_deltas, points) =
             new_state.make_move(r#move, self.turn.0, n_players_in_play)?;
 
+        // Make sure the player is not in check at the end
         if new_state.is_player_in_check(r#move.player)? {
             return Ok(None);
         }
@@ -138,6 +149,7 @@ impl<Set: PieceSet> Game<Set> {
 
     /// Increment turn and select the next player
     pub fn increment_turn(&mut self) {
+        // Get the number of players
         let players_n =
             u8::try_from(self.players.len()).expect("exceeded maximum number of players in game");
 
@@ -172,23 +184,28 @@ impl<Set: PieceSet> Game<Set> {
 
         let mut partial_deltas = Vec::new();
 
+        // If the current player has no valid moves, they are in checkmate or stalemate
         if self.valid_moves.is_empty() {
-            let deletion_moves = self.board.remove_player(self.turn.1);
+            // Remove the player from the board
+            let deletion_moves = self.board.remove_player(self.turn.1)?;
             if deletion_moves.is_empty() {
-                return Ok(Vec::with_capacity(0));
+                return Ok(Vec::new());
             }
             partial_deltas = deletion_moves;
 
+            // Add the appropriate checkmate / stalemate delta
             partial_deltas.push(if player_in_check {
                 PartialDelta::Checkmate(self.turn.1)
             } else {
                 PartialDelta::Stalemate(self.turn.1)
             });
 
+            // Set the player as out of play
             if let Some((is_in_game, _)) = self.players.get_mut(self.turn.1 as usize) {
                 *is_in_game = false;
             }
 
+            // Start the next turn
             partial_deltas.extend(self.start_turn()?);
         }
 
@@ -204,11 +221,13 @@ impl<Set: PieceSet> Game<Set> {
         &mut self,
         r#move: &Move,
     ) -> Result<Vec<PartialDelta<Set::PieceId>>, Error<Set>> {
+        // Attempt the move, and update the board if successful
         let Some((new_state, partial_deltas, points)) = self.attempt_move(r#move)? else {
             return Err(Error::InvalidMove(*r#move));
         };
         self.board = new_state;
 
+        // Update the player's score
         let (_, score) = self
             .players
             .get_mut(r#move.player as usize)
@@ -225,10 +244,16 @@ impl<Set: PieceSet> Game<Set> {
     }
 
     /// Remove a player from the game
-    pub fn remove_player(&mut self, player: u8) -> Vec<PartialDelta<Set::PieceId>> {
-        self.increment_turn();
-        self.turn.0 -= 1;
+    pub fn remove_player(&mut self, player: u8) -> Result<Vec<PartialDelta<Set::PieceId>>, Error<Set>> {
+        // Remove the player from the board
+        let deltas = self.board.remove_player(player)?;
 
-        self.board.remove_player(player)
+        // If it is the player's turn, go to the next player
+        if self.turn.1 == player {
+            self.increment_turn();
+            self.turn.0 -= 1;
+        }
+
+        Ok(deltas)
     }
 }

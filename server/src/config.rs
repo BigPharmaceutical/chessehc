@@ -2,7 +2,6 @@ use base64::{alphabet, engine};
 use lazy_static::lazy_static;
 use regex::Regex;
 
-// DO NOT CHANGE
 // The environment variable must be DATABASE_URL for `sqlx::query` to work
 pub const DATABASE_URL_ENV_VARIABLE: (&str, &str) = (
     "DATABASE_URL",

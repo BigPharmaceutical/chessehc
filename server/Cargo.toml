@@ -1,6 +1,6 @@
 [package]
 name = "chessehc"
-version = "0.2.10"
+version = "0.2.11"
 authors = ["Tom Boddaert (tomBoddaert) <chessehc@tomboddaert.com>", "BigPharmaceutical"]
 edition = "2021"
 description = "A variation of Chess on the surface of a tube; server and library"
@@ -18,7 +18,7 @@ ed25519-dalek = { version = "2.0.0-rc.2", optional = true }
 lazy_static = { version = "1.4.0", optional = true }
 regex = { version = "1.7.3", optional = true }
 sqlx = { version = "0.6.3", optional = true, features = ["postgres", "runtime-tokio-native-tls", "offline"] }
-dotenv = { version = "0.15.0", optional = true }
+dotenvy = { version = "0.15.7", optional = true }
 rand = { version = "0.8.5", optional = true }
 nohash-hasher = { version = "0.2.0", optional = true }
 
@@ -33,7 +33,7 @@ crate-type = ["lib"]
 default = ["standard_pieces"]
 standard_pieces = []
 standard_pieces_send = ["standard_pieces"]
-server = ["standard_pieces_send", "base64", "futures-util", "tokio", "tokio-tungstenite", "ed25519-dalek", "lazy_static", "regex", "sqlx", "dotenv", "rand", "nohash-hasher"]
+server = ["standard_pieces_send", "base64", "futures-util", "tokio", "tokio-tungstenite", "ed25519-dalek", "lazy_static", "regex", "sqlx", "dotenvy", "rand", "nohash-hasher"]
 
 [[bin]]
 name = "chessehc_server"

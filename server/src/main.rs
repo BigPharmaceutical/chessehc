@@ -6,7 +6,7 @@
     clippy::cargo
 )]
 
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use std::env;
 
 use crate::config::{BIND_URL_ENV_VARIABLE, DATABASE_URL_ENV_VARIABLE};

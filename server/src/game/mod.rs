@@ -114,7 +114,10 @@ async fn game_handler(
                 players[index].1 = None;
                 let index = u8::try_from(index).expect("too many players in game");
 
-                let deltas = game.as_mut().map(|game| game.remove_player(index));
+                let deltas = game.as_mut().map(|game| {
+                    game.remove_player(index)
+                        .expect("failed to remove player from game")
+                });
                 tb.send(Broadcast::Leave(player_id, deltas))
                     .expect("error sending broadcast");
             }

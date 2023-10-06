@@ -2,7 +2,7 @@ use crate::response::Responder;
 
 pub enum Status<'a> {
     Start(&'a [i64], &'a [(u8, u8)]),
-    End,
+    End(&'a [u16]),
 }
 
 impl<'a> Responder for Status<'a> {
@@ -11,7 +11,7 @@ impl<'a> Responder for Status<'a> {
 
         *byte_zero |= match &self {
             Self::Start(..) => 0,
-            Self::End => 1,
+            Self::End(_) => 1,
         } << 1;
 
         match self {
@@ -22,7 +22,10 @@ impl<'a> Responder for Status<'a> {
                 buffer.extend(players.iter().flat_map(|id| id.to_be_bytes()));
                 buffer.extend(board.iter().flat_map(|(player, id)| [player, id]));
             }
-            Self::End => todo!(),
+            Self::End(points) => {
+                buffer.reserve(points.len() * 2);
+                buffer.extend(points.iter().flat_map(|score| score.to_be_bytes()));
+            },
         }
     }
 }

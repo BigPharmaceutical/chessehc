@@ -104,6 +104,7 @@ impl Clone for StandardCompatiblePieceSet {
     }
 }
 
+// Map the methods
 impl PieceSet for StandardCompatiblePieceSet {
     type Error = Error;
     type PieceId = u8;
@@ -197,6 +198,7 @@ impl error::Error for Error {
     }
 }
 
+// Re-export the pieces
 mod bishop;
 mod king;
 mod knight;
